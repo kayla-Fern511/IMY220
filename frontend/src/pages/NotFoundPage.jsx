@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
-import logoImg from '../assets/logo.jpeg';
+import logoImg from '../assets/logo.png';
 
 export default function NotFoundPage() {
     const navigate = useNavigate();

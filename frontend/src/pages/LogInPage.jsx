@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import logoImg from '../assets/logo.jpeg';
+import logoImg from '../assets/logo.png';
 import Footer from '../components/Footer';
 import Navigation from '../components/Navigation';
 
@@ -97,7 +97,7 @@ export default function LoginPage() {
                 <section className="login-right-pane">
                     <img
                         src={logoImg}
-                        alt="TipTap Showcase Logo"
+                        alt="Logo"
                         className="login-graphic-preview"
                     />
                 </section>

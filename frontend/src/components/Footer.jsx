@@ -21,7 +21,6 @@ export default function Footer({ isLoggedIn = true }) {
 
             {isLoggedIn ? (
                 <nav className="footer-nav-links">
-                    <span>K Beyers u25362722</span>
                     <a href="https://github.com/kayla-Fern511/IMY220" target="_blank" rel="noreferrer">GitHub Repo</a>
                     <Link to="/home" className="footer-link">Home</Link>
                     <Link to="/search" className="footer-link">Search</Link>
@@ -32,7 +31,6 @@ export default function Footer({ isLoggedIn = true }) {
                 </nav>
             ) : (
                 <div className="footer-public-info">
-                    <span>K Beyers u25362722</span>
                     <a href="https://github.com/kayla-Fern511/IMY220" target="_blank" rel="noreferrer">GitHub Repo</a>
                 </div>
             )}

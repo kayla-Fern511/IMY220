@@ -14,7 +14,6 @@ export default function SplashPage() {
       <main className="splash-desktop-container">
         <section className="splash-hero-left">
           <h2>Welcome to BookSnaps</h2>
-          <p className="tagline">Every click tells a story</p>
           <div>
             <p>
               BookSnaps is a photo-sharing platform designed for book lovers, readers, and literary aesthetic creators. Users can share photos of their current reads, cozy book nooks, annotated pages, and indie bookstore visits, while discovering new books and connecting with a community of passionate readers.
