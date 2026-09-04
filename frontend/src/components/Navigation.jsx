@@ -3,7 +3,7 @@ import { FiHome, FiSearch, FiUser, FiLogOut } from 'react-icons/fi';
 
 export default function Navigation({ isLoggedIn = true, home = false, search = false, profile = false, isProfile = false}) {
   const navigate = useNavigate();
-  const loggedInUser = JSON.parse(localStorage.getItem('user')) || { username: 'avian_chloe' };
+  const loggedInUser = JSON.parse(localStorage.getItem('user')) || { username: 'testuser' };
 
   const handleLogout = () => {
     localStorage.removeItem('user');

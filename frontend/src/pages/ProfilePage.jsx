@@ -15,7 +15,7 @@ export default function ProfilePage() {
 
     const loggedInUser = JSON.parse(localStorage.getItem('user')) || {
         id: '1',
-        username: 'testuser'
+        username: "testuser"
     };
 
     if (!id) {

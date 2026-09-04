@@ -13,9 +13,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'TipTap server is active' });
+  res.status(200).json({ status: 'ok', message: 'Server is active' });
 });
 
 app.listen(PORT, () => {
-  console.log(`TipTap backend running at http://localhost:${PORT}`);
+  console.log(`Backend running at http://localhost:${PORT}`);
 });
