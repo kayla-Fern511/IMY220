@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import logoImg from '../assets/logo.jpeg';
+import logoImg from '../assets/logo.png';
 import Footer from '../components/Footer';
 import Navigation from '../components/Navigation';
 
@@ -31,7 +31,7 @@ export default function SignUpPage() {
     setError('');
 
     if (!formData.email.includes('@')) {
-      setError('Please enter a valid email address.');
+      setError('Invalid email address.');
       return;
     }
     if (formData.password.length < 6) {
@@ -56,7 +56,7 @@ export default function SignUpPage() {
         setError(data.message || 'Sign up failed.');
       }
     } catch {
-      setError('Backend connection error. Please ensure Express is running.');
+      setError('Backend connection error. Check Express.');
     }
   };
 
@@ -107,7 +107,7 @@ export default function SignUpPage() {
             </div>
 
             <div className="signup-field-group">
-              <label htmlFor="email">Email Address</label>
+              <label htmlFor="email">Email</label>
               <input
                 id="email"
                 name="email"
@@ -137,7 +137,7 @@ export default function SignUpPage() {
             </div>
 
             <div className="signup-field-group">
-              <label htmlFor="confirmPassword">Password Again</label>
+              <label htmlFor="confirmPassword">Password</label>
               <input
                 id="confirmPassword"
                 name="confirmPassword"
@@ -182,7 +182,7 @@ export default function SignUpPage() {
             </div>
 
             <div className="signup-field-group">
-              <label htmlFor="bio">Short Bio</label>
+              <label htmlFor="bio">Bio</label>
               <input
                 id="bio"
                 name="bio"
@@ -194,7 +194,7 @@ export default function SignUpPage() {
             </div>
 
             <div className="signup-field-group">
-              <label htmlFor="links">Links</label>
+              <label htmlFor="links">GoodReads</label>
               <div className="signup-link-input-container">
                 <input
                   id="links"

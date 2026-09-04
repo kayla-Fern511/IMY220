@@ -163,7 +163,7 @@ export default function NewPost({ onPublish, onCancel }) {
 
           <div className="create-post-actions-row">
             <button type="submit" className="wireframe-btn edit-save-btn">
-              Publish Post
+              Post
             </button>
             <button
               type="button"

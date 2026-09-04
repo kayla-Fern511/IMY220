@@ -5,52 +5,52 @@ const router = Router();
 const users = [
   {
     id: '1',
-    username: 'avian_chloe',
-    name: 'Chloe Aris',
+    username: 'testuser',
+    name: 'Kayla Beyers',
     pronouns: 'she/her',
-    links: 'linktr.ee/avianchloe',
-    bio: 'Bird watcher & wildlife photographer based in the Western Cape. Capturing fynbos endemics.',
+    links: 'goodreads.com/testuser',
+    bio: 'Capturing cozy reading nooks, annotated margins, and fantasy book aesthetics. Currently reading: The Priory of the Orange Tree 📚✨',
     avatarUrl: '',
     friends: [
-      { id: '2', username: 'raptor_hunter', name: 'Liam Vance' },
-      { id: '3', username: 'sunbird_snaps', name: 'Nandi Sithole' },
-      { id: '4', username: 'owl_scout', name: 'Sarah Finch' }
+      { id: '2', username: 'leatherbound_pages', name: 'Julian Vance' },
+      { id: '3', username: 'brews_and_bookmarks', name: 'Aaliyah Patel' },
+      { id: '4', username: 'gothic_reads', name: 'Elena Rostova' }
     ]
   },
   {
     id: '2',
-    username: 'raptor_hunter',
-    name: 'Liam Vance',
+    username: 'leatherbound_pages',
+    name: 'Julian Vance',
     pronouns: 'he/him',
-    links: 'instagram.com/raptor_hunter',
-    bio: 'Tracking birds of prey across Southern Africa. Raptor conservation advocate.',
+    links: 'instagram.com/leatherbound_pages',
+    bio: 'Rare book collector, classic literature enthusiast, and antique bookstore photography enthusiast.',
     avatarUrl: '',
     friends: [
-      { id: '1', username: 'avian_chloe', name: 'Chloe Aris' }
+      { id: '1', username: 'novel_narratives', name: 'Maya Lin' }
     ]
   },
   {
     id: '3',
-    username: 'sunbird_snaps',
-    name: 'Nandi Sithole',
+    username: 'brews_and_bookmarks',
+    name: 'Aaliyah Patel',
     pronouns: 'they/them',
-    links: 'nandisithole.photos',
-    bio: 'Macro bird photography enthusiast. Obsessed with sunbirds and fynbos biodiversity.',
+    links: 'aaliyahreads.blog',
+    bio: 'Indie bookstore lover, coffee shop cozy shots, and contemporary fiction reviewer. Forever chasing the perfect flatlay.',
     avatarUrl: '',
     friends: [
-      { id: '1', username: 'avian_chloe', name: 'Chloe Aris' }
+      { id: '1', username: 'novel_narratives', name: 'Maya Lin' }
     ]
   },
   {
     id: '4',
-    username: 'owl_scout',
-    name: 'Sarah Finch',
+    username: 'gothic_reads',
+    name: 'Elena Rostova',
     pronouns: 'she/her',
-    links: 'sarahfinch.co.za',
-    bio: 'Nocturnal wildlife & owl acoustics researcher.',
+    links: 'storygraph.com/elenarostova',
+    bio: 'Dark academia photography, thriller recommendations, and moody candlelit bookshelf setups.',
     avatarUrl: '',
     friends: [
-      { id: '1', username: 'avian_chloe', name: 'Chloe Aris' }
+      { id: '1', username: 'novel_narratives', name: 'Maya Lin' }
     ]
   }
 ];

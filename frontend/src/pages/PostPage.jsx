@@ -12,7 +12,7 @@ export default function PostPage() {
 
   const loggedInUser = JSON.parse(localStorage.getItem('user')) || {
     id: '1',
-    username: 'avian_chloe'
+    username: 'testuser'
   };
 
   const [post, setPost] = useState(null);

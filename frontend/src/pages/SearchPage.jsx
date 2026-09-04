@@ -33,7 +33,6 @@ export default function SearchPage() {
     setHasSearched(true);
     const startTime = Date.now();
 
-    // Strip leading # or @ so it doesn't break URL query strings
     const cleanTerm = term.replace(/^[#@]/, '').trim();
 
     try {
@@ -113,7 +112,7 @@ export default function SearchPage() {
           {queryParam && !loading && (
             <div className="search-status-bar">
               <span>
-                Showing results for: <strong>"{queryParam}"</strong> ({results.length} found)
+                Results for: <strong>"{queryParam}"</strong> ({results.length} found)
               </span>
             </div>
           )}

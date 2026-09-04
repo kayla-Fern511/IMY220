@@ -18,7 +18,6 @@ export default function EditProfile({ profile, onSave, onCancel }) {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Convert uploaded/dropped file into a base64 image preview URL
   const handleFileProcess = (file) => {
     if (file && file.type.startsWith('image/')) {
       const reader = new FileReader();

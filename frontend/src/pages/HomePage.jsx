@@ -80,14 +80,14 @@ export default function HomePage() {
             className={`feed-switch-btn ${activeFeed === 'local' ? 'active' : ''}`}
             onClick={() => setActiveFeed('local')}
           >
-            Local Feed
+            Your Feed
           </button>
           <span className="feed-switch-divider">|</span>
           <button
             className={`feed-switch-btn ${activeFeed === 'global' ? 'active' : ''}`}
             onClick={() => setActiveFeed('global')}
           >
-            Global Feed
+            Explore
           </button>
         </div>
 

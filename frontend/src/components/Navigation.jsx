@@ -14,10 +14,10 @@ export default function Navigation({ isLoggedIn = true, home = false, search = f
     <header className="wireframe-desktop-nav">
       {isLoggedIn ?
         (<Link to="/home" className="nav-brand-container">
-          <span className="brand-logo">TipTap</span>
+          <span className="brand-logo">BookSnaps</span>
         </Link>) : (
           <Link to="/" className="nav-brand-container">
-            <span className="brand-logo">TipTap</span>
+            <span className="brand-logo">BookSnaps</span>
           </Link>
         )}
 

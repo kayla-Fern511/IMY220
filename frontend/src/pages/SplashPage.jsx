@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import logoImg from '../assets/logo.jpeg';
+import logoImg from '../assets/logo.png';
 import Footer from '../components/Footer';
 import Navigation from '../components/Navigation'
 
@@ -13,11 +13,11 @@ export default function SplashPage() {
 
       <main className="splash-desktop-container">
         <section className="splash-hero-left">
-          <h2>Welcome to TipTap</h2>
+          <h2>Welcome to BookSnaps</h2>
           <p className="tagline">Every click tells a story</p>
           <div>
             <p>
-              TipTap is a dedicated sanctuary for birdwatchers, wildlife photographers, and avian enthusiasts. Share your high-res bird sightings, connect with fellow birders locally and globally, identify species through community comments, and document every feather in flight.
+              BookSnaps is a photo-sharing platform designed for book lovers, readers, and literary aesthetic creators. Users can share photos of their current reads, cozy book nooks, annotated pages, and indie bookstore visits, while discovering new books and connecting with a community of passionate readers.
             </p>
           </div>
           <div className="splash-actions-desktop">
@@ -34,7 +34,7 @@ export default function SplashPage() {
 
         <section className="splash-hero-right">
           <div className="splash-placeholder-graphic">
-            <img src={logoImg} alt="TipTap Logo" className="nav-logo-image" style={{ height: '420px', width: 'auto' }} />
+            <img src={logoImg} alt="BookSnaps Logo" className="nav-logo-image" style={{ height: '420px', width: 'auto' }} />
           </div>
         </section>
       </main>

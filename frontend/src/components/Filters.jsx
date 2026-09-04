@@ -30,9 +30,9 @@ export default function Filters({ onApplyFilters, onResetFilters }) {
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
-            <option value="recent">Most Recent</option>
-            <option value="likes">Most Liked</option>
-            <option value="comments">Most Active</option>
+            <option value="recent">Date</option>
+            <option value="likes">Likes</option>
+            <option value="comments">Comments</option>
           </select>
         </div>
 
@@ -42,7 +42,7 @@ export default function Filters({ onApplyFilters, onResetFilters }) {
             id="filter-tag"
             type="text"
             className="filter-input"
-            placeholder="#Fynbos, #Kruger..."
+            placeholder="#ReadingSpot, #Fantasy..."
             value={tagInput}
             onChange={(e) => setTagInput(e.target.value)}
           />

@@ -18,7 +18,7 @@ export default function NotFoundPage() {
                     <span className="notfound-code">404</span>
                     <h1 className="notfound-heading">Page Not Found</h1>
                     <p className="notfound-description">
-                        The page you are looking for has flown away or does not exist.
+                        Page not found
                     </p>
 
                     <div className="notfound-action-row">
@@ -36,7 +36,7 @@ export default function NotFoundPage() {
                 <div className="notfound-right-pane">
                     <img
                         src={logoImg}
-                        alt="TipTap Graphic"
+                        alt="BookSnaps Graphic"
                         className="notfound-graphic-preview"
                     />
                 </div>

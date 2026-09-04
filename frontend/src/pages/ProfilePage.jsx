@@ -15,7 +15,7 @@ export default function ProfilePage() {
 
     const loggedInUser = JSON.parse(localStorage.getItem('user')) || {
         id: '1',
-        username: 'avian_chloe'
+        username: 'testuser'
     };
 
     if (!id) {
@@ -37,8 +37,8 @@ export default function ProfilePage() {
     });
 
     const [pendingRequests, setPendingRequests] = useState([
-        { id: '5', username: 'falconer_dan', name: 'Dan Jacobs' },
-        { id: '6', username: 'pelican_pete', name: 'Peter Van Wyk' }
+        { id: '5', username: 'readymcgee', name: 'wallice law' },
+        { id: '6', username: 'Chapterchar', name: 'charlie marks' }
     ]);
 
     const [showFriendsList, setShowFriendsList] = useState(false);
