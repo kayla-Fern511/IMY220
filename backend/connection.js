@@ -9,7 +9,7 @@ async function connectDB() {
     const uri = process.env.MONGO_URI;
     client = new MongoClient(uri);
     await client.connect();
-    db = client.db("booksnaps");
+    db = client.db("BookSnaps");
     console.log("Connected to MongoDB");
 }
 

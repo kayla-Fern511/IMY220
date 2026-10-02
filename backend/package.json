@@ -1,11 +1,12 @@
 {
-  "name": "tiptap-backend",
+  "name": "BookSnaps-backend",
   "version": "1.0.0",
-  "description": "Backend server for TipTap photo sharing",
+  "description": "Backend server for BookSnaps photo sharing",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "update": "npm install"
   },
   "keywords": [],
   "author": "",

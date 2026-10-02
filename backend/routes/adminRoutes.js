@@ -27,7 +27,7 @@ router.post('/report-reasons', async (req, res) => {
     const { reason, username } = req.body;
 
     if (!reason || !reason.trim()) {
-        return res.status(400).json({ message: 'Reason text is required.' });
+        return res.status(400).json({ message: 'Text is required.' });
     }
 
     try {

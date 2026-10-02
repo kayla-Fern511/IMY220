@@ -1,2 +1,2 @@
 # IMY220
-IMY 220 Progect
+IMY 220 Project
