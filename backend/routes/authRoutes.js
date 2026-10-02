@@ -1,119 +1,253 @@
 import { Router } from 'express';
+import { ObjectId } from 'mongodb';
+import { getDB } from '../connection.js';
 
 const router = Router();
 
-const users = [
-  {
-    id: '1',
-    username: 'testuser',
-    name: 'Kayla Beyers',
-    pronouns: 'she/her',
-    links: 'goodreads.com/testuser',
-    bio: 'Capturing cozy reading nooks, annotated margins, and fantasy book aesthetics. Currently reading: The Priory of the Orange Tree 📚✨',
-    avatarUrl: '',
-    friends: [
-      { id: '2', username: 'leatherbound_pages', name: 'Julian Vance' },
-      { id: '3', username: 'brews_and_bookmarks', name: 'Aaliyah Patel' },
-      { id: '4', username: 'gothic_reads', name: 'Elena Rostova' }
-    ]
-  },
-  {
-    id: '2',
-    username: 'leatherbound_pages',
-    name: 'Julian Vance',
-    pronouns: 'he/him',
-    links: 'instagram.com/leatherbound_pages',
-    bio: 'Rare book collector, classic literature enthusiast, and antique bookstore photography enthusiast.',
-    avatarUrl: '',
-    friends: [
-      { id: '1', username: 'novel_narratives', name: 'Maya Lin' }
-    ]
-  },
-  {
-    id: '3',
-    username: 'brews_and_bookmarks',
-    name: 'Aaliyah Patel',
-    pronouns: 'they/them',
-    links: 'aaliyahreads.blog',
-    bio: 'Indie bookstore lover, coffee shop cozy shots, and contemporary fiction reviewer. Forever chasing the perfect flatlay.',
-    avatarUrl: '',
-    friends: [
-      { id: '1', username: 'novel_narratives', name: 'Maya Lin' }
-    ]
-  },
-  {
-    id: '4',
-    username: 'gothic_reads',
-    name: 'Elena Rostova',
-    pronouns: 'she/her',
-    links: 'storygraph.com/elenarostova',
-    bio: 'Dark academia photography, thriller recommendations, and moody candlelit bookshelf setups.',
-    avatarUrl: '',
-    friends: [
-      { id: '1', username: 'novel_narratives', name: 'Maya Lin' }
-    ]
-  }
-];
-
 // POST /api/auth/login
-router.post('/login', (req, res) => {
-    const { identifier, password } = req.body;
+router.post('/login', async (req, res) => {
+  const { identifier, password } = req.body;
 
-    if (!identifier || !password) {
-        return res.status(400).json({ message: 'Email/Username and Password are required.' });
-    }
+  if (!identifier || !password) {
+    return res.status(400).json({ message: 'Email/Username and Password are required.' });
+  }
 
-    if (password.length < 6) {
-        return res.status(401).json({ message: 'Invalid credentials. Password too short.' });
-    }
+  try {
+    const db = getDB();
+    const query = identifier.includes('@')
+      ? { email: identifier.toLowerCase().trim() }
+      : { username: identifier.toLowerCase().trim() };
 
+    const user = await db.collection('users').findOne(query);
+    if (!user || user.password !== password)
+      return res.status(401).json({ message: 'Invalid credentials.' });
     return res.status(200).json({
-        message: 'Login successful!',
-        token: 'stubbed-jwt-token-12345',
-        user: {
-            id: 1,
-            username: identifier.includes('@') ? identifier.split('@')[0] : identifier,
-            email: identifier.includes('@') ? identifier : `${identifier}@example.com`
-        }
+      message: 'Login successful',
+      token: `token-${user._id}`,
+      user: {
+        id: user._id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        role: user.role || 'user'
+      }
     });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error during login', error: error.message });
+  }
 });
 
 // POST /api/auth/signup
-router.post('/signup', (req, res) => {
-    const { name, surname, email, password, confirmPassword, pronouns, username, bio, links } = req.body;
+router.post('/signup', async (req, res) => {
+  const { name, surname, email, password, confirmPassword, pronouns, username, bio, links } = req.body;
 
-    if (!name || !surname || !email || !password || !username) {
-        return res.status(400).json({ message: 'Please fill in all required fields.' });
-    }
-
-    if (password !== confirmPassword) {
-        return res.status(400).json({ message: 'Passwords do not match.' });
-    }
-
-    return res.status(201).json({
-        message: 'User registered successfully!',
-        user: {
-            id: Date.now(),
-            name,
-            surname,
-            email,
-            username,
-            pronouns,
-            bio,
-            links
-        }
-    });
-});
-
-router.get('/profile/:username', (req, res) => {
-  const targetUsername = req.params.username.toLowerCase();
-  const user = users.find((u) => u.username.toLowerCase() === targetUsername);
-
-  if (!user) {
-    return res.status(404).json({ message: 'User not found' });
+  if (!name || !surname || !email || !password || !username) {
+    return res.status(400).json({ message: 'Please fill in all required fields.' });
   }
 
-  res.status(200).json(user);
+  if (password !== confirmPassword) {
+    return res.status(400).json({ message: 'Passwords do not match.' });
+  }
+
+  try {
+    const db = getDB();
+    const cleanUsername = username.toLowerCase().trim();
+    const cleanEmail = email.toLowerCase().trim();
+
+    const existingUser = await db.collection('users').findOne({
+      $or: [{ username: cleanUsername }, { email: cleanEmail }]
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ message: 'Username or email is already registered.' });
+    }
+
+    const newUser = {
+      username: cleanUsername,
+      name,
+      surname,
+      email: cleanEmail,
+      password,
+      role: 'user',
+      pronouns: pronouns || '',
+      bio: bio || '',
+      links: links || '',
+      avatarUrl: '',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const result = await db.collection('users').insertOne(newUser);
+
+    return res.status(201).json({
+      message: 'Account created successfully',
+      token: `token-${result.insertedId}`,
+      user: {
+        id: result.insertedId,
+        username: newUser.username,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error registering account', error: error.message });
+  }
 });
 
+// GET /api/auth/profile/:username
+router.get('/profile/:username', async (req, res) => {
+  const targetUsername = req.params.username.toLowerCase();
+
+  try {
+    const db = getDB();
+    const user = await db.collection('users').findOne({ username: targetUsername });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    const friendships = await db.collection('friends').find({
+      $or: [{ userId1: user._id }, { userId2: user._id }],
+      status: 'accepted'
+    }).toArray();
+
+
+    const friendUserIds = friendships.map((f) =>
+      f.userId1.toString() === user._id.toString() ? f.userId2 : f.userId1
+    );
+
+    const friendDocs = await db.collection('users')
+      .find({ _id: { $in: friendUserIds } })
+      .project({ username: 1, name: 1, surname: 1, avatarUrl: 1 })
+      .toArray();
+
+    return res.status(200).json({
+      id: user._id,
+      username: user.username,
+      name: `${user.name} ${user.surname}`.trim(),
+      pronouns: user.pronouns || '',
+      links: user.links || '',
+      bio: user.bio || '',
+      avatarUrl: user.avatarUrl || '',
+      friends: friendDocs.map((f) => ({
+        id: f._id,
+        username: f.username,
+        name: `${f.name} ${f.surname}`.trim()
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error retrieving profile', error: error.message });
+  }
+});
+
+// PUT /api/auth/profile/:id
+// PUT /api/auth/profile/:username
+router.put('/profile/:username', async (req, res) => {
+  const { username } = req.params;
+  const { name, pronouns, links, bio, avatarUrl } = req.body;
+
+  try {
+    const db = getDB();
+
+    const updateFields = {
+      updatedAt: new Date()
+    };
+
+    if (name !== undefined) updateFields.name = String(name).trim();
+    if (pronouns !== undefined) updateFields.pronouns = String(pronouns).trim();
+    if (links !== undefined) updateFields.links = String(links).trim();
+    if (bio !== undefined) updateFields.bio = String(bio).trim();
+    if (avatarUrl !== undefined) updateFields.avatarUrl = String(avatarUrl).trim();
+
+    const result = await db.collection('users').updateOne(
+      { username: username.toLowerCase().trim() },
+      { $set: updateFields }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    return res.status(200).json({
+      message: 'Profile updated successfully.',
+      profile: updateFields
+    });
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    if (error.errInfo?.details?.schemaRulesNotSatisfied) {
+      console.dir(error.errInfo.details.schemaRulesNotSatisfied, { depth: null });
+    }
+    return res.status(500).json({ message: 'Error updating profile', error: error.message });
+  }
+});
+
+router.delete('/profile/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const db = getDB();
+    const query = ObjectId.isValid(id)
+      ? { _id: new ObjectId(id) }
+      : { username: id.toLowerCase().trim() };
+
+    const user = await db.collection('users').findOne(query);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    const userId = user._id;
+    const userPosts = await db.collection('posts')
+      .find({ userId })
+      .project({ _id: 1 })
+      .toArray();
+
+    const userPostIds = userPosts.map((p) => p._id);
+    if (userPostIds.length > 0) {
+      await db.collection('comments').deleteMany({ postId: { $in: userPostIds } });
+      await db.collection('likes').deleteMany({ postId: { $in: userPostIds } });
+      await db.collection('reports').deleteMany({ postId: { $in: userPostIds } });
+      await db.collection('albumPosts').deleteMany({ postId: { $in: userPostIds } });
+    }
+
+    await db.collection('comments').deleteMany({ userId });
+    await db.collection('likes').deleteMany({ userId });
+
+    await db.collection('posts').deleteMany({ userId });
+    await db.collection('albums').deleteMany({ userId });
+
+    await db.collection('friends').deleteMany({
+      $or: [{ userId1: userId }, { userId2: userId }]
+    });
+
+    await db.collection('activities').deleteMany({
+      $or: [{ actorId: userId }, { postId: { $in: userPostIds } }]
+    });
+
+    await db.collection('reports').deleteMany({ reporterId: userId });
+    await db.collection('users').deleteOne({ _id: userId });
+
+    return res.status(200).json({ message: 'Account and associated data deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting user profile:', error);
+    return res.status(500).json({ message: 'Error deleting account', error: error.message });
+  }
+});
+
+router.post('/logout', (req, res) => {
+  try {
+    // If you are using HTTP-only cookies for session/token management, clear them here:
+    res.clearCookie('token', {
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production'
+    });
+
+    return res.status(200).json({ message: 'Successfully logged out.' });
+  } catch (error) {
+    console.error('Error during logout:', error);
+    return res.status(500).json({ message: 'Failed to log out.', error: error.message });
+  }
+})
 export default router;
