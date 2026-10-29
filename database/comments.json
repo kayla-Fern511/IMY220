@@ -1,0 +1,110 @@
+[
+    {
+        "_id": {
+            "$oid": "6ae39d2a101f2f1c654e1902"
+        },
+        "postId": {
+            "$oid": "6ae35de2db3acd3e75245a85"
+        },
+        "userId": {
+            "$oid": "6ae39c3bddac9cf56042e01c"
+        },
+        "text": "I LOOOOOOVED this",
+        "createdAt": {
+            "$date": "2026-10-29T19:23:22.923Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T19:23:22.923Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6ae39e9e101f2f1c654e1915"
+        },
+        "postId": {
+            "$oid": "6ae39e59101f2f1c654e1911"
+        },
+        "userId": {
+            "$oid": "6ae39e37101f2f1c654e1910"
+        },
+        "text": "commenting on my own posts",
+        "createdAt": {
+            "$date": "2026-10-29T19:29:34.729Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T19:29:34.730Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6ae3a0de101f2f1c654e1925"
+        },
+        "postId": {
+            "$oid": "6ae39dd9101f2f1c654e190d"
+        },
+        "userId": {
+            "$oid": "6ae3a0c5101f2f1c654e1923"
+        },
+        "text": "this booked nearly killed me",
+        "createdAt": {
+            "$date": "2026-10-29T19:39:10.474Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T19:39:10.474Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6ae3a0f5101f2f1c654e1926"
+        },
+        "postId": {
+            "$oid": "6ae39dd9101f2f1c654e190d"
+        },
+        "userId": {
+            "$oid": "6ae3a0c5101f2f1c654e1923"
+        },
+        "text": "cant believe this is someones realisty",
+        "createdAt": {
+            "$date": "2026-10-29T19:39:33.807Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T19:39:33.807Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6ae3a114101f2f1c654e192b"
+        },
+        "postId": {
+            "$oid": "6ae39dbb101f2f1c654e190b"
+        },
+        "userId": {
+            "$oid": "6ae3a0c5101f2f1c654e1923"
+        },
+        "text": "helped me learn french as a kid",
+        "createdAt": {
+            "$date": "2026-10-29T19:40:04.047Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T19:40:04.047Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6ae3a142101f2f1c654e192d"
+        },
+        "postId": {
+            "$oid": "6ae38986db3acd3e75245a9f"
+        },
+        "userId": {
+            "$oid": "6ae3a0c5101f2f1c654e1923"
+        },
+        "text": "DOWN WITH JKR",
+        "createdAt": {
+            "$date": "2026-10-29T19:40:50.190Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T19:40:50.190Z"
+        }
+    }
+]

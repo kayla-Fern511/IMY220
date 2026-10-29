@@ -74,7 +74,7 @@ router.get('/', async (req, res) => {
                 caption: '$$photo.caption',
                 hashtags: '$$photo.hashtags',
                 createdAt: '$$photo.createdAt',
-                username: '$owner.username'
+                username: { $ifNull: [{ $arrayElemAt: ['$owner.username', 0] }, 'reader'] }
               }
             }
           }
@@ -111,7 +111,7 @@ router.get('/:id', async (req, res) => {
           as: 'owner'
         }
       },
-      { $unwind: '$owner' },
+      { $unwind: { path: '$owner', preserveNullAndEmptyArrays: true } },
       {
         $lookup: {
           from: 'albumPosts',
@@ -146,7 +146,8 @@ router.get('/:id', async (req, res) => {
                 imageUrl: '$$post.imageUrl',
                 caption: '$$post.caption',
                 hashtags: '$$post.hashtags',
-                createdAt: '$$post.createdAt'
+                createdAt: '$post.createdAt',
+                username: { $ifNull: ['$owner.username', 'reader'] }
               }
             }
           }

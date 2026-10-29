@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiHeart, FiMessageCircle } from 'react-icons/fi';
+import { FiHeart, FiMessageCircle, FiAlertTriangle } from 'react-icons/fi';
 
 export default function PostPreview({ post }) {
     const navigate = useNavigate();
     const loggedInUser = JSON.parse(localStorage.getItem('user'));
+
+    if (!post) return null;
+
     const [isLiked, setIsLiked] = useState(Boolean(post.isLiked));
     const [likesCount, setLikesCount] = useState(post.likes ?? 0);
+    const [revealReported, setRevealReported] = useState(false);
 
     useEffect(() => {
         setIsLiked(Boolean(post.isLiked));
         setLikesCount(post.likes ?? 0);
-    }, [post.id, post.likes, post.isLiked]);
+    }, [post.id, post._id, post.likes, post.isLiked]);
 
     const handleLikeClick = async (e) => {
         e.preventDefault();
@@ -44,7 +48,6 @@ export default function PostPreview({ post }) {
                 setLikesCount(data.likesCount);
             }
         } catch {
-            // Revert optimistic update
             setIsLiked(!nextLikedState);
             setLikesCount((prev) => (nextLikedState ? Math.max(0, prev - 1) : prev + 1));
         }
@@ -73,9 +76,35 @@ export default function PostPreview({ post }) {
         });
     };
 
-    const authorUsername = post.username || 'reader';
-    const initials = authorUsername.charAt(0).toUpperCase();
+    const rawUser = post.username || post.author?.username || 'reader';
+    const authorUsername = typeof rawUser === 'string'
+        ? rawUser
+        : (Array.isArray(rawUser) && rawUser[0] ? String(rawUser[0]) : 'reader');
+    const initials = (authorUsername && typeof authorUsername === 'string' ? authorUsername.charAt(0) : 'R').toUpperCase();
     const postId = post.id || post._id;
+
+    if (post.isReported && !revealReported) {
+        return (
+            <article className="pin-card reported-pin-card">
+                <div className="reported-pin-content">
+                    <FiAlertTriangle className="reported-pin-icon" />
+                    <h3 className="reported-pin-title">This post was reported</h3>
+                    <p className="reported-pin-desc">Flagged by community members for review.</p>
+                    <button
+                        type="button"
+                        className="wireframe-btn reported-reveal-btn"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setRevealReported(true);
+                        }}
+                    >
+                        View Post Anyway
+                    </button>
+                </div>
+            </article>
+        );
+    }
 
     return (
         <article className="pin-card">
@@ -100,15 +129,15 @@ export default function PostPreview({ post }) {
                             onClick={handleLikeClick}
                             title={isLiked ? 'Unlike' : 'Like'}
                         >
-                            <FiHeart className="heart-icon" style={{ fontSize: '0.95rem' }} />
-                            {likesCount}
+                            <FiHeart className="heart-icon post-preview-meta-icon" />
+                            <span>{likesCount}</span>
                         </button>
                         <span
                             className="pin-overlay-btn"
                             title="Comments"
                         >
-                            <FiMessageCircle style={{ fontSize: '0.95rem' }} />
-                            {post.comments?.length || 0}
+                            <FiMessageCircle className="post-preview-meta-icon" />
+                            <span>{post.comments?.length || 0}</span>
                         </span>
                     </div>
                 </div>
@@ -123,7 +152,7 @@ export default function PostPreview({ post }) {
                 )}
 
                 {post.caption && (
-                    <p className="pin-card-caption" title={post.caption}>
+                    <p className="pin-card-caption">
                         {post.caption}
                     </p>
                 )}
@@ -131,25 +160,16 @@ export default function PostPreview({ post }) {
                 <div className="pin-card-footer">
                     <Link
                         to={`/profile/${authorUsername}`}
-                        className="pin-card-user"
-                        aria-label={`View profile of @${authorUsername}`}
+                        className="pin-card-author"
+                        onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="pin-user-avatar">
-                            {initials}
-                        </div>
-                        <span className="pin-user-name">@{authorUsername}</span>
+                        <div className="pin-user-avatar">{initials}</div>
+                        <span className="pin-user-handle">@{authorUsername}</span>
                     </Link>
 
-                    <button
-                        type="button"
-                        className={`pin-card-likes ${isLiked ? 'liked' : ''}`}
-                        onClick={handleLikeClick}
-                        title={isLiked ? 'Unlike' : 'Like'}
-                        aria-label={`${isLiked ? 'Unlike' : 'Like'} post — ${likesCount} likes`}
-                    >
-                        <FiHeart className="heart-icon" />
-                        {likesCount}
-                    </button>
+                    {post.timeAgo && (
+                        <span className="pin-time-ago">{post.timeAgo}</span>
+                    )}
                 </div>
             </div>
         </article>

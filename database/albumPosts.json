@@ -1,0 +1,30 @@
+[
+  {
+    "_id": {
+      "$oid": "6ae38804db3acd3e75245a96"
+    },
+    "albumId": {
+      "$oid": "6ae387fedb3acd3e75245a94"
+    },
+    "postId": {
+      "$oid": "6ae35de2db3acd3e75245a85"
+    },
+    "addedAt": {
+      "$date": "2026-10-29T17:53:08.487Z"
+    }
+  },
+  {
+    "_id": {
+      "$oid": "6ae38870db3acd3e75245a9b"
+    },
+    "albumId": {
+      "$oid": "6ae3882fdb3acd3e75245a97"
+    },
+    "postId": {
+      "$oid": "6ae38750db3acd3e75245a90"
+    },
+    "addedAt": {
+      "$date": "2026-10-29T17:54:56.858Z"
+    }
+  }
+]

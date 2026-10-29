@@ -1,140 +1,151 @@
+
 import { Link, useNavigate } from 'react-router-dom';
 import { FiClock, FiFolder, FiImage } from 'react-icons/fi';
 
 export default function ActivityCard({ activity }) {
   const navigate = useNavigate();
 
-  const renderActionSubtitle = () => {
+  const isCollection =
+    activity.actionType === 'created_album' ||
+    activity.actionType === 'added_to_album';
+
+  const profileUrl = `/profile/${activity.username}`;
+  const postUrl = `/post/${activity.targetId || activity.postId}`;
+
+  const renderAction = () => {
     switch (activity.actionType) {
       case 'created_album':
         return (
-          <span className="activity-action-text">
-            created collection <strong>{activity.albumName}</strong>
-          </span>
+          <>
+            created a collection{' '}
+            <strong>{activity.albumName}</strong>
+          </>
         );
+
       case 'added_to_album':
         return (
-          <span className="activity-action-text">
-            added {activity.photoCount || 1} {activity.photoCount === 1 ? 'photo' : 'photos'} to{' '}
+          <>
+            added {activity.photoCount || 1}{' '}
+            {activity.photoCount === 1 ? 'photo' : 'photos'} to{' '}
             <strong>{activity.albumName}</strong>
-          </span>
+          </>
         );
-      case 'created_post':
+
       default:
-        return <span className="activity-action-text">shared a new book snap</span>;
+        return <>shared a new book snap</>;
     }
   };
 
-  const renderMedia = () => {
-    if (activity.actionType === 'created_album' || activity.actionType === 'added_to_album') {
+  const renderMediaContent = () => {
+    if (isCollection) {
       const images = activity.images || [];
+
+      if (!images.length) {
+        return (
+          <div className="activity-image-placeholder">
+            <FiFolder />
+            <span>Reading Collection</span>
+          </div>
+        );
+      }
+
       return (
-        <div
-          className="post-image-container activity-album-media-box"
-          onClick={() => navigate(`/profile/${activity.username}`)}
-        >
-          {images.length > 0 ? (
-            <div className="activity-multi-photo-grid">
-              {images.slice(0, 2).map((img, idx) => (
-                <div key={idx} className="activity-photo-cell">
-                  <img src={img} alt="Album photo" className="post-photo-img" />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="post-image-placeholder album-empty-placeholder">
-              <FiFolder className="album-placeholder-icon" />
-            </div>
-          )}
+        <div className="activity-collection-images">
+          {images.slice(0, 2).map((image, index) => (
+            <img
+              key={index}
+              src={image}
+              alt={`${activity.albumName || 'Collection'} preview ${index + 1}`}
+              loading="lazy"
+            />
+          ))}
         </div>
       );
     }
 
-    return (
-      <Link to={`/post/${activity.targetId || activity.postId}`} className="post-image-container">
-        {activity.imageUrl ? (
-          <img
-            src={activity.imageUrl}
-            alt={activity.caption || 'Activity photo'}
-            className="post-photo-img"
-          />
-        ) : (
-          <div className="post-image-placeholder">📚</div>
-        )}
-      </Link>
+    return activity.imageUrl ? (
+      <img
+        src={activity.imageUrl}
+        alt={activity.caption || 'Book snap'}
+        className="activity-card-image"
+        loading="lazy"
+      />
+    ) : (
+      <div className="activity-image-placeholder">
+        <FiImage />
+        <span>Book Snap</span>
+      </div>
     );
   };
 
   const renderHashtags = () => {
-    const rawTags = activity.hashtags;
-    if (!rawTags) return null;
-    const tagList = Array.isArray(rawTags) ? rawTags : String(rawTags).trim().split(/\s+/);
+    if (!activity.hashtags) return null;
 
-    return tagList.map((tag, index) => {
-      const cleanTag = tag.startsWith('#') ? tag : `#${tag}`;
-      return (
-        <button
-          key={`${cleanTag}-${index}`}
-          type="button"
-          className="hashtag-btn"
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/search?q=${encodeURIComponent(cleanTag.replace(/^#/, ''))}`);
-          }}
-        >
-          {cleanTag}
-        </button>
-      );
-    });
+    const tags = Array.isArray(activity.hashtags)
+      ? activity.hashtags
+      : String(activity.hashtags).trim().split(/\s+/);
+
+    return (
+      <div className="activity-card-tags">
+        {tags.filter(Boolean).map((tag, index) => {
+          const cleanTag = tag.replace(/^#/, '');
+
+          return (
+            <button
+              key={`${cleanTag}-${index}`}
+              type="button"
+              className="hashtag-btn"
+              onClick={() =>
+                navigate(
+                  `/search?q=${encodeURIComponent(cleanTag)}`
+                )
+              }
+            >
+              #{cleanTag}
+            </button>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
     <article className="activity-card-item">
-      {renderMedia()}
+      <Link
+        to={isCollection ? profileUrl : postUrl}
+        className="activity-card-media"
+      >
+        {renderMediaContent()}
+      </Link>
 
-      <div className="post-meta-details">
-        <div className="post-tags-user-row">
-          <div className="post-hashtags-container">
-            {renderHashtags()}
-          </div>
-          <Link
-            to={`/profile/${activity.username}`}
-            className="post-username-link"
-          >
+      <div className="activity-card-body">
+        {renderHashtags()}
+
+        <p className="activity-card-action">
+          <Link to={profileUrl} className="activity-user-link">
             @{activity.username}
+          </Link>{' '}
+          {renderAction()}
+        </p>
+
+        {activity.caption && (
+          <p className="activity-card-caption">
+            {activity.caption}
+          </p>
+        )}
+
+        <div className="activity-card-footer">
+          <Link to={profileUrl} className="activity-card-user">
+            <span className="activity-user-avatar">
+              {activity.username?.charAt(0).toUpperCase() || 'B'}
+            </span>
+            <span>@{activity.username}</span>
           </Link>
-        </div>
 
-        <div className="activity-caption-block">
-          {renderActionSubtitle()}
-          {activity.caption && (
-            <p className="post-description-text">
-              {activity.caption}
-            </p>
-          )}
-        </div>
-
-        <hr className="post-card-divider" />
-
-        <div className="post-stats-footer-row">
-          <span className="activity-type-indicator">
-            {activity.actionType === 'created_post' ? (
-              <>
-                <FiImage className="metric-icon" /> Book Snap
-              </>
-            ) : (
-              <>
-                <FiFolder className="metric-icon" /> Collection
-              </>
-            )}
+          <span className="activity-card-time">
+            <FiClock />
+            {activity.timeAgo || 'Just now'}
           </span>
-
-          <div className="post-metrics-group">
-            <div className="metric-item" title="Time of activity">
-              <FiClock className="metric-icon" />
-              <span className="metric-number">{activity.timeAgo || 'Just now'}</span>
-            </div>
-          </div>
         </div>
       </div>
     </article>
