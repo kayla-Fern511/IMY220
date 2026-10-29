@@ -1,29 +1,52 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiHeart, FiMessageCircle } from 'react-icons/fi';
 
 export default function PostPreview({ post }) {
     const navigate = useNavigate();
-    const loggedInUser = JSON.parse(localStorage.getItem('user')) || { username: 'testuser' };
-
-    const [isLiked, setIsLiked] = useState(post.isLiked || false);
+    const loggedInUser = JSON.parse(localStorage.getItem('user'));
+    const [isLiked, setIsLiked] = useState(Boolean(post.isLiked));
     const [likesCount, setLikesCount] = useState(post.likes ?? 0);
+
+    useEffect(() => {
+        setIsLiked(Boolean(post.isLiked));
+        setLikesCount(post.likes ?? 0);
+    }, [post.id, post.likes, post.isLiked]);
 
     const handleLikeClick = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const newLikedState = !isLiked;
-        setIsLiked(newLikedState);
-        setLikesCount((prev) => (newLikedState ? prev + 1 : prev - 1));
+
+        if (!loggedInUser) {
+            navigate('/login');
+            return;
+        }
+
+        const nextLikedState = !isLiked;
+        setIsLiked(nextLikedState);
+        setLikesCount((prev) => (nextLikedState ? prev + 1 : Math.max(0, prev - 1)));
 
         try {
-            await fetch(`http://localhost:5000/api/posts/${post.id}/like`, {
+            const res = await fetch(`http://localhost:5000/api/posts/${post.id || post._id}/like`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: loggedInUser.username })
             });
+
+            if (!res.ok) {
+                throw new Error('Failed to update like status');
+            }
+            const data = await res.json();
+            if (typeof data.liked === 'boolean') {
+                setIsLiked(data.liked);
+            }
+            if (typeof data.likesCount === 'number') {
+                setLikesCount(data.likesCount);
+            }
         } catch {
-            // Optimistic update stays; silently fail
+            // Revert optimistic update
+            setIsLiked(!nextLikedState);
+            setLikesCount((prev) => (nextLikedState ? Math.max(0, prev - 1) : prev + 1));
         }
     };
 
@@ -41,7 +64,7 @@ export default function PostPreview({ post }) {
                     className="hashtag-btn"
                     onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/search?q=${encodeURIComponent(cleanTag.replace('#', ''))}`);
+                        navigate(`/search?q=${encodeURIComponent(cleanTag.replace(/^#/, ''))}`);
                     }}
                 >
                     {cleanTag}
@@ -50,20 +73,25 @@ export default function PostPreview({ post }) {
         });
     };
 
-    // Get initials for avatar fallback
-    const initials = post.username ? post.username.charAt(0).toUpperCase() : '?';
+    const authorUsername = post.username || 'reader';
+    const initials = authorUsername.charAt(0).toUpperCase();
+    const postId = post.id || post._id;
 
     return (
         <article className="pin-card">
             {/* Image with hover overlay */}
-            <Link to={`/post/${post.id}`} className="pin-card-image-wrapper" aria-label={`View post by @${post.username}`}>
+            <Link
+                to={`/post/${postId}`}
+                className="pin-card-image-wrapper"
+                aria-label={`View post by @${authorUsername}`}
+            >
                 {post.imageUrl ? (
                     <img src={post.imageUrl} alt={post.caption || 'Book photo'} loading="lazy" />
                 ) : (
                     <div className="pin-card-placeholder">📚</div>
                 )}
 
-                {/* Hover overlay */}
+                {/* Hover overlay with Pinterest-style save/like and comments */}
                 <div className="pin-card-overlay" aria-hidden="true">
                     <div className="pin-card-overlay-actions">
                         <button
@@ -75,15 +103,13 @@ export default function PostPreview({ post }) {
                             <FiHeart className="heart-icon" style={{ fontSize: '0.95rem' }} />
                             {likesCount}
                         </button>
-                        <Link
-                            to={`/post/${post.id}`}
+                        <span
                             className="pin-overlay-btn"
-                            onClick={(e) => e.stopPropagation()}
-                            title="View comments"
+                            title="Comments"
                         >
                             <FiMessageCircle style={{ fontSize: '0.95rem' }} />
                             {post.comments?.length || 0}
-                        </Link>
+                        </span>
                     </div>
                 </div>
             </Link>
@@ -104,14 +130,14 @@ export default function PostPreview({ post }) {
 
                 <div className="pin-card-footer">
                     <Link
-                        to={`/profile/${post.username}`}
+                        to={`/profile/${authorUsername}`}
                         className="pin-card-user"
-                        aria-label={`View profile of @${post.username}`}
+                        aria-label={`View profile of @${authorUsername}`}
                     >
                         <div className="pin-user-avatar">
                             {initials}
                         </div>
-                        <span className="pin-user-name">@{post.username}</span>
+                        <span className="pin-user-name">@{authorUsername}</span>
                     </Link>
 
                     <button

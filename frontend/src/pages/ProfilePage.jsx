@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Navigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
-import PostPreview from '../components/PostPreview';
+import PostList from '../components/PostList';
 import PostSkeleton from '../components/PostSkeleton';
 import FriendList from '../components/FriendList';
 import Requests from '../components/Requests';
 import EditProfile from '../components/EditProfile';
 import NewPost from '../components/NewPost';
-import { FiPlusSquare, FiUserCheck, FiEdit } from 'react-icons/fi';
-
-// Varying skeleton heights for masonry illusion
-const SKELETON_HEIGHTS = ['200px', '280px', '160px', '240px', '300px', '180px'];
+import NewAlbum from '../components/NewAlbum';
+import AlbumCard from '../components/AlbumCard';
+import AlbumDetail from '../components/AlbumDetail';
+import { FiPlusSquare, FiUserCheck, FiEdit2, FiFolderPlus, FiLink, FiUsers } from 'react-icons/fi';
 
 export default function ProfilePage() {
     const { id } = useParams();
@@ -19,20 +19,15 @@ export default function ProfilePage() {
 
     const loggedInUser = JSON.parse(localStorage.getItem('user')) || {
         id: '1',
-        username: 'testuser'
+        username: 'reader'
     };
 
-    // Bug fix: Navigate was used but never imported — now imported from react-router-dom above
-    if (!id) {
-        return <Navigate to={`/profile/${loggedInUser.username}`} replace />;
-    }
-
-    const targetUsername = id.toLowerCase();
+    const targetUsername = (id || loggedInUser.username).toLowerCase();
     const isOwnProfile = loggedInUser.username.toLowerCase() === targetUsername;
 
     const [profile, setProfile] = useState({
-        id: targetUsername,
-        username: targetUsername,
+        id: '',
+        username: '',
         name: '',
         pronouns: '',
         links: '',
@@ -41,27 +36,33 @@ export default function ProfilePage() {
         friends: []
     });
 
-    // Bug fix: pendingRequests now fetched from the API, not hardcoded
+    const [postFeed, setPostFeed] = useState('posts');
+    const [relationshipStatus, setRelationshipStatus] = useState('Not Friends');
+    const [userPosts, setUserPosts] = useState([]);
+    const [userAlbums, setUserAlbums] = useState([]);
+    const [selectedAlbum, setSelectedAlbum] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [pendingRequests, setPendingRequests] = useState([]);
 
     const [showFriendsList, setShowFriendsList] = useState(false);
     const [showRequests, setShowRequests] = useState(false);
     const [showEditProfile, setShowEditProfile] = useState(false);
     const [showNewPost, setShowNewPost] = useState(false);
+    const [showNewAlbum, setShowNewAlbum] = useState(false);
 
-    const [relationshipStatus, setRelationshipStatus] = useState('Not Friends');
-    const [userPosts, setUserPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
-
+    const canViewFullProfile = isOwnProfile || relationshipStatus === 'Friends';
     const canViewFriends = isOwnProfile || relationshipStatus === 'Friends';
 
     useEffect(() => {
         setShowFriendsList(false);
         setShowRequests(false);
         setShowEditProfile(false);
+        setShowNewPost(false);
+        setShowNewAlbum(false);
+        setSelectedAlbum(null);
         setLoading(true);
-        const startTime = Date.now();
 
+        const startTime = Date.now();
         const fetchProfile = fetch(`http://localhost:5000/api/auth/profile/${encodeURIComponent(targetUsername)}`)
             .then((res) => (res.ok ? res.json() : null))
             .then((data) => {
@@ -72,194 +73,296 @@ export default function ProfilePage() {
                     );
                     setRelationshipStatus(isFriend ? 'Friends' : 'Not Friends');
                 } else {
-                    setProfile((prev) => ({
-                        ...prev,
+                    setProfile({
                         id: targetUsername,
                         username: targetUsername,
-                        name: targetUsername.replace('_', ' '),
-                        bio: '',
+                        name: targetUsername.replace('_', ' ').toUpperCase(),
+                        pronouns: '',
+                        links: '',
+                        bio: 'Book lover and literary enthusiast.',
                         avatarUrl: '',
                         friends: []
-                    }));
+                    });
                     setRelationshipStatus('Not Friends');
                 }
-            })
-            .catch(() => {});
+            });
 
-        // Bug fix: fetch user's posts via username query
+        const fetchFriendshipStatus = !isOwnProfile
+            ? fetch(`http://localhost:5000/api/friends/status?user1=${encodeURIComponent(loggedInUser.username)}&user2=${encodeURIComponent(targetUsername)}`)
+                .then((res) => (res.ok ? res.json() : null))
+                .then((data) => {
+                    if (data?.status) {
+                        setRelationshipStatus(data.status);
+                    }
+                })
+                .catch(() => setRelationshipStatus('Not Friends'))
+            : Promise.resolve();
+
+        const fetchRequests = isOwnProfile
+            ? fetch(`http://localhost:5000/api/friends/requests?user=${encodeURIComponent(loggedInUser.username)}`)
+                .then((res) => (res.ok ? res.json() : []))
+                .then((reqs) => setPendingRequests(Array.isArray(reqs) ? reqs : []))
+                .catch(() => setPendingRequests([]))
+            : Promise.resolve();
+
         const fetchPosts = fetch(`http://localhost:5000/api/posts?q=${encodeURIComponent(targetUsername)}`)
             .then((res) => (res.ok ? res.json() : []))
             .then((posts) => {
                 setUserPosts(Array.isArray(posts) ? posts : []);
+            });
+
+        const fetchAlbums = fetch(`http://localhost:5000/api/albums?user=${encodeURIComponent(targetUsername)}`)
+            .then((res) => (res.ok ? res.json() : []))
+            .then((albums) => {
+                setUserAlbums(Array.isArray(albums) ? albums : []);
             })
-            .catch(() => setUserPosts([]));
+            .catch(() => {
+                setUserAlbums([]);
+            });
 
-        // Bug fix: fetch pending friend requests from API (only for own profile)
-        const fetchRequests = isOwnProfile
-            ? fetch(`http://localhost:5000/api/friends/requests?username=${encodeURIComponent(loggedInUser.username)}`)
-                .then((res) => (res.ok ? res.json() : []))
-                .then((data) => { setPendingRequests(Array.isArray(data) ? data : []); })
-                .catch(() => setPendingRequests([]))
-            : Promise.resolve();
-
-        Promise.allSettled([fetchProfile, fetchPosts, fetchRequests]).then(() => {
-            const elapsed = Date.now() - startTime;
-            const remaining = Math.max(0, 800 - elapsed);
-            setTimeout(() => setLoading(false), remaining);
+        Promise.allSettled([fetchProfile, fetchFriendshipStatus, fetchRequests, fetchPosts, fetchAlbums]).then(() => {
+            const elapsedTime = Date.now() - startTime;
+            const remainingTime = Math.max(0, 800 - elapsedTime);
+            setTimeout(() => setLoading(false), remainingTime);
         });
-    }, [targetUsername]);
+    }, [targetUsername, loggedInUser.username]);
 
-    // Bug fix: handleStatusClick now calls the friends API
     const handleStatusClick = async () => {
         if (isOwnProfile) return;
 
         if (relationshipStatus === 'Friends') {
-            const confirmRemove = window.confirm(
-                `Remove @${profile.username} as a friend?`
-            );
-            if (!confirmRemove) return;
-            try {
-                await fetch(`http://localhost:5000/api/friends`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        requesterUsername: loggedInUser.username,
-                        recipientUsername: profile.username
-                    })
-                });
-            } catch { /* optimistic */ }
-            setRelationshipStatus('Not Friends');
-
+            if (window.confirm(`Are you sure you want to remove @${profile.username} as a friend?`)) {
+                try {
+                    await fetch('http://localhost:5000/api/friends/remove', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user1: loggedInUser.username,
+                            user2: profile.username
+                        })
+                    });
+                    setRelationshipStatus('Not Friends');
+                } catch (err) {
+                    console.error('Failed to unfriend:', err);
+                }
+            }
         } else if (relationshipStatus === 'Friend Request Pending') {
-            const cancel = window.confirm(
-                `Cancel friend request to @${profile.username}?`
-            );
-            if (!cancel) return;
-            try {
-                await fetch(`http://localhost:5000/api/friends/cancel`, {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        requesterUsername: loggedInUser.username,
-                        recipientUsername: profile.username
-                    })
-                });
-            } catch { /* optimistic */ }
-            setRelationshipStatus('Not Friends');
-
+            if (window.confirm(`Cancel pending friend request to @${profile.username}?`)) {
+                try {
+                    await fetch('http://localhost:5000/api/friends/decline', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            sender: loggedInUser.username,
+                            recipient: profile.username
+                        })
+                    });
+                    setRelationshipStatus('Not Friends');
+                } catch (err) {
+                    console.error('Failed to cancel request:', err);
+                }
+            }
         } else if (relationshipStatus === 'Not Friends') {
             try {
-                await fetch(`http://localhost:5000/api/friends/request`, {
+                await fetch('http://localhost:5000/api/friends/request', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        requesterUsername: loggedInUser.username,
-                        recipientUsername: profile.username
+                        sender: loggedInUser.username,
+                        recipient: profile.username
                     })
                 });
-            } catch { /* optimistic */ }
-            setRelationshipStatus('Friend Request Pending');
+                setRelationshipStatus('Friend Request Pending');
+            } catch (err) {
+                console.error('Failed to send friend request:', err);
+            }
         }
     };
 
-    // Bug fix: handleSaveProfile now calls PUT /api/auth/profile/:username
-    const handleSaveProfile = async (updatedData) => {
-        try {
-            await fetch(`http://localhost:5000/api/auth/profile/${encodeURIComponent(loggedInUser.username)}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData)
-            });
-        } catch { /* optimistic */ }
-        setProfile((prev) => ({ ...prev, ...updatedData }));
-        setShowEditProfile(false);
-    };
-
-    const handleAcceptRequest = async (requestId) => {
-        const accepted = pendingRequests.find((r) => r.id === requestId);
-        try {
-            await fetch(`http://localhost:5000/api/friends/accept`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ requestId })
-            });
-        } catch { /* optimistic */ }
-        if (accepted) {
-            setProfile((prev) => ({
-                ...prev,
-                friends: [...prev.friends, accepted]
-            }));
-            setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
-        }
-    };
-
-    const handleDeclineRequest = async (requestId) => {
-        try {
-            await fetch(`http://localhost:5000/api/friends/decline`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ requestId })
-            });
-        } catch { /* optimistic */ }
-        setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
-    };
-
-    // Bug fix: handlePublishPost now calls POST /api/posts
     const handlePublishPost = async (newPostData) => {
-        const payload = {
+        const createdPost = {
+            id: String(Date.now()),
             username: loggedInUser.username,
             caption: newPostData.caption,
             hashtags: newPostData.hashtags,
             imageUrl: newPostData.imageUrl
         };
 
-        let createdId = String(Date.now());
         try {
-            const res = await fetch(`http://localhost:5000/api/posts`, {
+            await fetch('http://localhost:5000/api/posts', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(createdPost)
             });
-            if (res.ok) {
-                const data = await res.json();
-                createdId = data.id || createdId;
-            }
-        } catch { /* optimistic */ }
+        } catch {
+            // local fallback
+        }
 
-        const optimisticPost = {
-            id: createdId,
-            username: loggedInUser.username,
-            caption: newPostData.caption,
-            hashtags: newPostData.hashtags,
-            imageUrl: newPostData.imageUrl,
-            likes: 0,
-            timeAgo: 'Just now',
-            comments: []
-        };
-
-        setUserPosts((prev) => [optimisticPost, ...prev]);
+        setUserPosts((prev) => [createdPost, ...prev]);
         setShowNewPost(false);
     };
 
-    // Relationship status label & class
-    const statusClass = {
-        'Friends': 'status-friends',
-        'Friend Request Pending': 'status-friend-request-pending',
-        'Not Friends': 'status-not-friends'
-    }[relationshipStatus] || 'status-not-friends';
+    const handlePublishAlbum = async (newAlbumData) => {
+        try {
+            const res = await fetch('http://localhost:5000/api/albums', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: loggedInUser.username,
+                    name: newAlbumData.name,
+                    description: newAlbumData.description,
+                    hashtags: newAlbumData.hashtags
+                })
+            });
 
-    const statusLabel = {
-        'Friends': '✓ Friends',
-        'Friend Request Pending': '⏳ Pending',
-        'Not Friends': '+ Follow'
-    }[relationshipStatus] || '+ Follow';
+            if (res.ok) {
+                const albumsRes = await fetch(`http://localhost:5000/api/albums?user=${encodeURIComponent(targetUsername)}`);
+                if (albumsRes.ok) {
+                    const refreshedAlbums = await albumsRes.json();
+                    setUserAlbums(refreshedAlbums);
+                }
+            }
+        } catch (err) {
+            console.error('Error publishing album:', err);
+        }
+        setShowNewAlbum(false);
+    };
 
-    // Avatar initial
-    const avatarInitial = (profile.name || profile.username || '?').charAt(0).toUpperCase();
+    const handleUpdateAlbum = async (albumId, updatedData) => {
+        try {
+            await fetch(`http://localhost:5000/api/albums/${albumId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+            });
+        } catch {
+            // Local fallback
+        }
+
+        const updater = (album) =>
+            album.id === albumId ? { ...album, ...updatedData } : album;
+
+        setUserAlbums((prev) => prev.map(updater));
+        if (selectedAlbum && selectedAlbum.id === albumId) {
+            setSelectedAlbum((prev) => ({ ...prev, ...updatedData }));
+        }
+    };
+
+    const handleDeleteAlbum = async (albumId) => {
+        if (!window.confirm('Are you sure you want to delete this collection? Book snaps inside will not be deleted.')) {
+            return;
+        }
+
+        try {
+            await fetch(`http://localhost:5000/api/albums/${albumId}`, { method: 'DELETE' });
+        } catch {
+            // Local fallback
+        }
+
+        setUserAlbums((prev) => prev.filter((a) => a.id !== albumId));
+        setSelectedAlbum(null);
+    };
+
+    const handleAddPostToAlbum = async (albumId, post) => {
+        try {
+            await fetch(`http://localhost:5000/api/albums/${albumId}/posts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ postId: post.id })
+            });
+        } catch {
+            // local fallback
+        }
+
+        const addPost = (album) => {
+            if (album.id !== albumId) return album;
+            const current = album.posts || [];
+            return { ...album, posts: [...current, post] };
+        };
+
+        setUserAlbums((prev) => prev.map(addPost));
+        if (selectedAlbum && selectedAlbum.id === albumId) {
+            setSelectedAlbum((prev) => ({
+                ...prev,
+                posts: [...(prev.posts || []), post]
+            }));
+        }
+    };
+
+    const handleRemovePostFromAlbum = async (albumId, postId) => {
+        try {
+            await fetch(`http://localhost:5000/api/albums/${albumId}/posts/${postId}`, {
+                method: 'DELETE'
+            });
+        } catch {
+            // local fallback
+        }
+
+        const removePost = (album) => {
+            if (album.id !== albumId) return album;
+            return {
+                ...album,
+                posts: (album.posts || []).filter((p) => String(p.id) !== String(postId))
+            };
+        };
+
+        setUserAlbums((prev) => prev.map(removePost));
+        if (selectedAlbum && selectedAlbum.id === albumId) {
+            setSelectedAlbum((prev) => ({
+                ...prev,
+                posts: (prev.posts || []).filter((p) => String(p.id) !== String(postId))
+            }));
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        const confirmDelete = window.confirm(
+            'Are you sure you want to delete your account? All your posts, collections, comments, and friendships will be permanently removed.'
+        );
+        if (!confirmDelete) return;
+
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (!storedUser?.username) return;
+
+        try {
+            const res = await fetch(`http://localhost:5000/api/auth/profile/${storedUser.username}`, {
+                method: 'DELETE'
+            });
+
+            if (res.ok) {
+                localStorage.removeItem('user');
+                localStorage.removeItem('token');
+                navigate('/');
+            } else {
+                const data = await res.json();
+                alert(data.message || 'Failed to delete account.');
+            }
+        } catch (err) {
+            console.error('Error during profile deletion:', err);
+        }
+    };
+
+    const handleOpenAlbum = async (alb) => {
+        setSelectedAlbum(alb);
+        try {
+            const res = await fetch(`http://localhost:5000/api/albums/${alb.id}`);
+            if (res.ok) {
+                const freshData = await res.json();
+                setSelectedAlbum(freshData);
+                setUserAlbums((prev) =>
+                    prev.map((a) => (a.id === freshData.id ? freshData : a))
+                );
+            }
+        } catch (err) {
+            console.error('Error fetching full album details:', err);
+        }
+    };
+
+    const initials = profile.username ? profile.username.charAt(0).toUpperCase() : '?';
 
     return (
         <div className="app-container profile-desktop-screen">
-            <Navigation isLoggedIn={true} profile={true} isProfile={isOwnProfile} />
+            <Navigation profile={true} isProfile={isOwnProfile} />
 
             {showFriendsList ? (
                 <main className="profile-fullscreen-friendlist-container">
@@ -272,8 +375,34 @@ export default function ProfilePage() {
                 <main className="profile-fullscreen-friendlist-container">
                     <Requests
                         requests={pendingRequests}
-                        onAccept={handleAcceptRequest}
-                        onDecline={handleDeclineRequest}
+                        onAccept={async (requestId) => {
+                            try {
+                                await fetch('http://localhost:5000/api/friends/accept', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ requestId })
+                                });
+                                const req = pendingRequests.find((r) => r.id === requestId);
+                                if (req) {
+                                    setProfile((prev) => ({ ...prev, friends: [...prev.friends, req] }));
+                                    setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
+                                }
+                            } catch (err) {
+                                console.error('Failed to accept request:', err);
+                            }
+                        }}
+                        onDecline={async (requestId) => {
+                            try {
+                                await fetch('http://localhost:5000/api/friends/decline', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ requestId })
+                                });
+                                setPendingRequests((prev) => prev.filter((r) => r.id !== requestId));
+                            } catch (err) {
+                                console.error('Failed to decline request:', err);
+                            }
+                        }}
                         onBack={() => setShowRequests(false)}
                     />
                 </main>
@@ -281,8 +410,28 @@ export default function ProfilePage() {
                 <main className="profile-fullscreen-friendlist-container">
                     <EditProfile
                         profile={profile}
-                        onSave={handleSaveProfile}
+                        onSave={async (updated) => {
+                            try {
+                                const res = await fetch(`http://localhost:5000/api/auth/profile/${encodeURIComponent(profile.username)}`, {
+                                    method: 'PUT',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(updated)
+                                });
+
+                                if (res.ok) {
+                                    setProfile((prev) => ({ ...prev, ...updated }));
+                                    setShowEditProfile(false);
+                                } else {
+                                    const data = await res.json();
+                                    alert(data.message || 'Failed to update profile.');
+                                }
+                            } catch (err) {
+                                console.error('Error updating profile:', err);
+                                alert('Network error while saving profile.');
+                            }
+                        }}
                         onCancel={() => setShowEditProfile(false)}
+                        onDelete={handleDeleteAccount}
                     />
                 </main>
             ) : showNewPost ? (
@@ -292,175 +441,238 @@ export default function ProfilePage() {
                         onCancel={() => setShowNewPost(false)}
                     />
                 </main>
+            ) : showNewAlbum ? (
+                <main className="profile-fullscreen-friendlist-container">
+                    <NewAlbum
+                        onPublish={handlePublishAlbum}
+                        onCancel={() => setShowNewAlbum(false)}
+                    />
+                </main>
+            ) : selectedAlbum ? (
+                <main className="profile-fullscreen-friendlist-container">
+                    <AlbumDetail
+                        album={selectedAlbum}
+                        isOwnProfile={isOwnProfile}
+                        allUserPosts={userPosts}
+                        onBack={() => setSelectedAlbum(null)}
+                        onUpdateAlbum={handleUpdateAlbum}
+                        onDeleteAlbum={handleDeleteAlbum}
+                        onAddPostToAlbum={handleAddPostToAlbum}
+                        onRemovePostFromAlbum={handleRemovePostFromAlbum}
+                    />
+                </main>
             ) : (
-                <main className="profile-page-content">
-                    {/* Hero banner */}
-                    <div className="profile-hero-banner" style={{ borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0' }}>
-                        <div className="profile-hero-gradient-overlay" aria-hidden="true" />
-                        <div className="profile-avatar-container">
-                            <div className="profile-avatar-ring" aria-label={`Avatar of ${profile.username}`}>
-                                {profile.avatarUrl ? (
-                                    <img src={profile.avatarUrl} alt={profile.username} />
-                                ) : (
-                                    avatarInitial
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Profile info */}
-                    <section className="profile-info-section">
-                        <div className="profile-info-left">
-                            <h1 className="profile-display-name">
-                                {profile.name || profile.username}
-                            </h1>
-                            <p className="profile-username-handle">@{profile.username}</p>
-
-                            {profile.bio && (
-                                <p className="profile-bio-text">{profile.bio}</p>
-                            )}
-
-                            <div className="profile-meta-pills">
-                                {profile.pronouns && (
-                                    <span className="profile-meta-pill">
-                                        {profile.pronouns}
-                                    </span>
-                                )}
-                                {profile.links && (
-                                    <span className="profile-meta-pill">
-                                        🔗&nbsp;
-                                        <a
-                                            href={profile.links.startsWith('http') ? profile.links : `https://${profile.links}`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                        >
-                                            {profile.links}
-                                        </a>
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="profile-info-right">
-                            {/* Stats */}
-                            <div className="profile-stats-row">
-                                <div className="profile-stat-btn" title="Posts">
-                                    <span className="profile-stat-count">{userPosts.length}</span>
-                                    <span className="profile-stat-label">Posts</span>
+                <main className="profile-pinterest-container">
+                    {/* Pinterest Profile Header */}
+                    <header className="profile-header-card">
+                        <div className="profile-avatar-wrapper">
+                            {profile.avatarUrl ? (
+                                <img
+                                    src={profile.avatarUrl}
+                                    alt={profile.username}
+                                    className="profile-avatar-img"
+                                />
+                            ) : (
+                                <div className="profile-avatar-initials">
+                                    {initials}
                                 </div>
+                            )}
+                        </div>
+
+                        <h1 className="profile-display-name">{profile.name || profile.username}</h1>
+                        <p className="profile-handle">@{profile.username}</p>
+
+                        {profile.pronouns && (
+                            <span className="profile-pronouns-tag">{profile.pronouns}</span>
+                        )}
+
+                        {profile.bio && (
+                            <p className="profile-bio-text">{profile.bio}</p>
+                        )}
+
+                        {profile.links && (
+                            <div className="profile-links-row">
+                                <FiLink style={{ marginRight: '6px' }} />
+                                <a
+                                    href={profile.links.startsWith('http') ? profile.links : `https://${profile.links}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    {profile.links.replace(/^https?:\/\//, '')}
+                                </a>
+                            </div>
+                        )}
+
+                        {/* Profile Stats Pills */}
+                        <div className="profile-stats-bar">
+                            <span className="profile-stat-item">
+                                <strong>{userPosts.length}</strong> Snaps
+                            </span>
+                            <span className="profile-stat-divider">•</span>
+                            <span className="profile-stat-item">
+                                <strong>{userAlbums.length}</strong> Collections
+                            </span>
+                            {canViewFriends && (
+                                <>
+                                    <span className="profile-stat-divider">•</span>
+                                    <button
+                                        type="button"
+                                        className="profile-stat-link"
+                                        onClick={() => setShowFriendsList(true)}
+                                    >
+                                        <FiUsers style={{ marginRight: '4px' }} />
+                                        <strong>{profile.friends?.length || 0}</strong> Friends
+                                    </button>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Profile Actions */}
+                        <div className="profile-actions-row">
+                            {isOwnProfile ? (
+                                <>
+                                    <button
+                                        type="button"
+                                        className="wireframe-btn"
+                                        onClick={() => setShowEditProfile(true)}
+                                    >
+                                        <FiEdit2 style={{ marginRight: '6px' }} /> Edit Profile
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="wireframe-btn"
+                                        style={{ background: 'var(--bg-card)', color: 'var(--text)', border: '1.5px solid var(--border)' }}
+                                        onClick={() => setShowRequests(true)}
+                                    >
+                                        Requests {pendingRequests.length > 0 && `(${pendingRequests.length})`}
+                                    </button>
+                                </>
+                            ) : (
                                 <button
                                     type="button"
-                                    className="profile-stat-btn"
-                                    onClick={() => canViewFriends && setShowFriendsList(true)}
-                                    disabled={!canViewFriends}
-                                    title={canViewFriends ? 'View friends' : 'Friends list is private'}
+                                    className={`wireframe-btn ${relationshipStatus === 'Friends' ? 'btn-friend-active' : ''}`}
+                                    onClick={handleStatusClick}
                                 >
-                                    <span className="profile-stat-count">
-                                        {profile.friends?.length ?? 0}
-                                    </span>
-                                    <span className="profile-stat-label">Friends</span>
+                                    <FiUserCheck style={{ marginRight: '6px' }} />
+                                    {relationshipStatus}
+                                </button>
+                            )}
+                        </div>
+                    </header>
+
+                    {/* Pinterest Profile Tabs (Snaps vs Collections) */}
+                    {canViewFullProfile && (
+                        <div className="profile-tabs-bar">
+                            <div className="home-feed-toggle-group">
+                                <button
+                                    type="button"
+                                    className={`feed-switch-btn ${postFeed === 'posts' ? 'active' : ''}`}
+                                    onClick={() => setPostFeed('posts')}
+                                >
+                                    Book Snaps ({userPosts.length})
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`feed-switch-btn ${postFeed === 'albums' ? 'active' : ''}`}
+                                    onClick={() => setPostFeed('albums')}
+                                >
+                                    Collections ({userAlbums.length})
                                 </button>
                             </div>
 
-                            {/* Action buttons */}
-                            <div className="profile-action-buttons">
-                                {isOwnProfile ? (
-                                    <>
-                                        <button
-                                            id="btn-new-post"
-                                            type="button"
-                                            className="wireframe-btn"
-                                            onClick={() => setShowNewPost(true)}
-                                            title="Create new post"
-                                        >
-                                            <FiPlusSquare /> Make Post
-                                        </button>
-                                        <button
-                                            id="btn-requests"
-                                            type="button"
-                                            className="wireframe-btn"
-                                            style={{ background: 'var(--bg)', color: 'var(--text)', border: '1.5px solid var(--border)' }}
-                                            onClick={() => setShowRequests(true)}
-                                        >
-                                            <FiUserCheck />
-                                            Requests
-                                            {pendingRequests.length > 0 && (
-                                                <span style={{
-                                                    background: 'var(--accent)',
-                                                    color: '#fff',
-                                                    borderRadius: '50%',
-                                                    width: '20px',
-                                                    height: '20px',
-                                                    display: 'inline-flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: 700
-                                                }}>
-                                                    {pendingRequests.length}
-                                                </span>
-                                            )}
-                                        </button>
-                                        <button
-                                            id="btn-edit-profile"
-                                            type="button"
-                                            className="wireframe-btn"
-                                            style={{ background: 'var(--bg)', color: 'var(--text)', border: '1.5px solid var(--border)' }}
-                                            onClick={() => setShowEditProfile(true)}
-                                        >
-                                            <FiEdit /> Edit Profile
-                                        </button>
-                                    </>
+                            {isOwnProfile && (
+                                postFeed === 'posts' ? (
+                                    <button
+                                        type="button"
+                                        className="wireframe-btn"
+                                        onClick={() => setShowNewPost(true)}
+                                    >
+                                        <FiPlusSquare style={{ marginRight: '6px' }} /> New Book Snap
+                                    </button>
                                 ) : (
                                     <button
-                                        id="btn-relationship-status"
                                         type="button"
-                                        className={`profile-status-btn ${statusClass}`}
-                                        onClick={handleStatusClick}
+                                        className="wireframe-btn"
+                                        onClick={() => setShowNewAlbum(true)}
                                     >
-                                        {statusLabel}
+                                        <FiFolderPlus style={{ marginRight: '6px' }} /> New Collection
                                     </button>
-                                )}
-                            </div>
+                                )
+                            )}
                         </div>
-                    </section>
+                    )}
 
-                    <hr className="profile-divider" />
+                    {/* Tab Content */}
+                    {canViewFullProfile && (
+                        <div className="profile-tab-content-area">
+                            {loading && (
+                                <div className="masonry-grid">
+                                    <PostSkeleton />
+                                    <PostSkeleton />
+                                    <PostSkeleton />
+                                </div>
+                            )}
 
-                    {/* Posts masonry grid */}
-                    <section
-                        className="profile-three-col-grid"
-                        aria-label={`Posts by ${profile.username}`}
-                        aria-busy={loading}
-                    >
-                        {loading && SKELETON_HEIGHTS.map((h, i) => (
-                            <div key={i} className="masonry-item" aria-hidden="true">
-                                <PostSkeleton height={h} />
-                            </div>
-                        ))}
+                            {!loading && postFeed === 'posts' && (
+                                userPosts.length === 0 ? (
+                                    <div className="feed-empty-state">
+                                        <div className="feed-empty-icon">📚</div>
+                                        <p className="feed-empty-title">
+                                            {isOwnProfile ? 'You haven\'t shared any book snaps yet.' : 'No book snaps yet.'}
+                                        </p>
+                                        {isOwnProfile && (
+                                            <button
+                                                type="button"
+                                                className="wireframe-btn"
+                                                style={{ marginTop: '14px' }}
+                                                onClick={() => setShowNewPost(true)}
+                                            >
+                                                Share your first snap
+                                            </button>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <PostList userPosts={userPosts} />
+                                )
+                            )}
 
-                        {!loading && userPosts.length === 0 && (
-                            <p className="profile-no-posts-text">
-                                {isOwnProfile
-                                    ? 'You haven\'t shared any book snaps yet. Make your first post!'
-                                    : 'No posts yet.'}
-                            </p>
-                        )}
-
-                        {!loading && userPosts.map((post, idx) => (
-                            <div
-                                key={post.id || post._id}
-                                className="masonry-item post-card-animated-wrapper"
-                                style={{ animationDelay: `${Math.min(idx * 0.08, 0.7)}s` }}
-                            >
-                                <PostPreview post={post} />
-                            </div>
-                        ))}
-                    </section>
+                            {!loading && postFeed === 'albums' && (
+                                userAlbums.length === 0 ? (
+                                    <div className="feed-empty-state">
+                                        <div className="feed-empty-icon">📁</div>
+                                        <p className="feed-empty-title">No collections created yet.</p>
+                                        <p className="feed-empty-sub">
+                                            Collections are like Pinterest boards — group your book snaps by genre, season, or reading challenge.
+                                        </p>
+                                        {isOwnProfile && (
+                                            <button
+                                                type="button"
+                                                className="wireframe-btn"
+                                                style={{ marginTop: '14px' }}
+                                                onClick={() => setShowNewAlbum(true)}
+                                            >
+                                                Create your first collection
+                                            </button>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="pin-boards-grid">
+                                        {userAlbums.map((album) => (
+                                            <AlbumCard
+                                                key={album.id}
+                                                album={album}
+                                                onSelectAlbum={handleOpenAlbum}
+                                            />
+                                        ))}
+                                    </div>
+                                )
+                            )}
+                        </div>
+                    )}
                 </main>
             )}
 
-            <Footer isLoggedIn={true} />
+            <Footer />
         </div>
     );
 }

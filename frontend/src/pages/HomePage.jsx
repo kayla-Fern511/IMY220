@@ -6,29 +6,27 @@ import PostSkeleton from '../components/PostSkeleton';
 import Filters from '../components/Filters';
 import { FiSliders } from 'react-icons/fi';
 
-// Varying skeleton heights simulate natural masonry while loading
 const SKELETON_HEIGHTS = ['220px', '300px', '180px', '260px', '340px', '200px', '280px', '150px'];
 
 export default function HomePage() {
   const [activeFeed, setActiveFeed] = useState('global');
   const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({ tag: '', sortBy: 'newest' });
   const [posts, setPosts] = useState([]);
   const [rawServerPosts, setRawServerPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Bug fix: get the logged-in user so we can pass `user` param for local feed
-  const loggedInUser = JSON.parse(localStorage.getItem('user')) || { username: 'testuser' };
+  const loggedInUser = JSON.parse(localStorage.getItem('user'));
 
   useEffect(() => {
     setLoading(true);
     setError('');
 
     const startTime = Date.now();
-
-    // Bug fix: pass user=<username> so the backend can filter to friends' posts
-    const url = activeFeed === 'local'
-      ? `http://localhost:5000/api/posts?feed=local&user=${encodeURIComponent(loggedInUser.username)}`
+    const userParam = loggedInUser?.username ? `&user=${encodeURIComponent(loggedInUser.username)}` : '';
+    const url = activeFeed === 'local' && loggedInUser?.username
+      ? `http://localhost:5000/api/posts?feed=local${userParam}`
       : `http://localhost:5000/api/posts?feed=global`;
 
     fetch(url)
@@ -58,42 +56,45 @@ export default function HomePage() {
           setLoading(false);
         }, remainingTime);
       });
-  }, [activeFeed]);
+  }, [activeFeed, loggedInUser?.username]);
 
-  const handleApplyFilters = (filters) => {
+  const handleApplyFilters = (newFilters) => {
+    setFilters(newFilters);
     let filtered = [...rawServerPosts];
 
-    if (filters.tag) {
-      const term = filters.tag.toLowerCase();
+    if (newFilters.tag) {
+      const term = newFilters.tag.toLowerCase();
       filtered = filtered.filter((p) => {
-        const tags = Array.isArray(p.hashtags) ? p.hashtags.join(' ') : (p.hashtags || '');
+        const tags = Array.isArray(p.hashtags) ? p.hashtags.join(' ') : String(p.hashtags || '');
         return tags.toLowerCase().includes(term);
       });
     }
 
-    if (filters.sortBy === 'likes') {
+    if (newFilters.sortBy === 'likes') {
       filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-    } else if (filters.sortBy === 'comments') {
-      filtered.sort((a, b) => (b.comments?.length || 0) - (a.comments?.length || 0));
+    } else {
+      filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     }
 
     setPosts(filtered);
   };
 
   const handleResetFilters = () => {
+    setFilters({ tag: '', sortBy: 'newest' });
     setPosts(rawServerPosts);
   };
 
   return (
     <div className="app-container home-desktop-screen">
-      <Navigation isLoggedIn={true} home={true} />
+      <Navigation home={true} />
 
       <div className="home-page-content">
-        {/* Feed toggle + filters bar */}
+        {/* Feed selector and filters toggle bar */}
         <div className="home-subbar">
           <div className="home-feed-toggle-group" role="group" aria-label="Feed selector">
             <button
               id="feed-btn-local"
+              type="button"
               className={`feed-switch-btn ${activeFeed === 'local' ? 'active' : ''}`}
               onClick={() => setActiveFeed('local')}
               aria-pressed={activeFeed === 'local'}
@@ -102,6 +103,7 @@ export default function HomePage() {
             </button>
             <button
               id="feed-btn-global"
+              type="button"
               className={`feed-switch-btn ${activeFeed === 'global' ? 'active' : ''}`}
               onClick={() => setActiveFeed('global')}
               aria-pressed={activeFeed === 'global'}
@@ -112,6 +114,7 @@ export default function HomePage() {
 
           <button
             id="home-filters-toggle"
+            type="button"
             className={`home-filters-btn ${showFilters ? 'active' : ''}`}
             onClick={() => setShowFilters((prev) => !prev)}
             aria-expanded={showFilters}
@@ -138,7 +141,7 @@ export default function HomePage() {
           </p>
         )}
 
-        {/* Masonry feed */}
+        {/* Pinterest Masonry Feed */}
         <main className="masonry-grid" aria-label="Post feed" aria-busy={loading}>
           {loading && SKELETON_HEIGHTS.map((h, i) => (
             <div key={i} className="masonry-item" aria-hidden="true">
@@ -154,7 +157,7 @@ export default function HomePage() {
               </p>
               <p className="feed-empty-sub">
                 {activeFeed === 'local'
-                  ? 'Follow some readers or switch to Explore to discover posts.'
+                  ? 'Connect with fellow readers or switch to Explore to discover book snaps.'
                   : 'Be the first to share a book snap!'}
               </p>
             </div>
@@ -162,7 +165,7 @@ export default function HomePage() {
 
           {!loading && !error && posts.map((post, idx) => (
             <div
-              key={post.id || post._id}
+              key={post.id || post._id || idx}
               className="masonry-item post-card-animated-wrapper"
               style={{ animationDelay: `${Math.min(idx * 0.07, 0.8)}s` }}
             >
@@ -172,7 +175,7 @@ export default function HomePage() {
         </main>
       </div>
 
-      <Footer isLoggedIn={true} />
+      <Footer />
     </div>
   );
 }

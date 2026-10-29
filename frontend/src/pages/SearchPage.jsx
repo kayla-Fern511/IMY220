@@ -15,8 +15,8 @@ export default function SearchPage() {
   const [searchInput, setSearchInput] = useState(queryParam);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => {
     setSearchInput(queryParam);
@@ -34,6 +34,7 @@ export default function SearchPage() {
     setHasSearched(true);
     const startTime = Date.now();
 
+    // Strip leading # or @ so it doesn't break URL query strings
     const cleanTerm = term.replace(/^[#@]/, '').trim();
 
     try {
@@ -41,35 +42,38 @@ export default function SearchPage() {
         `http://localhost:5000/api/posts?q=${encodeURIComponent(cleanTerm)}`
       );
 
-      if (!response.ok) throw new Error(`Server returned ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`Server returned status ${response.status}`);
+      }
 
       const data = await response.json();
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, 800 - elapsed);
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 800 - elapsedTime);
 
       setTimeout(() => {
         setResults(Array.isArray(data) ? data : []);
         setLoading(false);
-      }, remaining);
+      }, remainingTime);
     } catch {
-      const elapsed = Date.now() - startTime;
-      const remaining = Math.max(0, 800 - elapsed);
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, 800 - elapsedTime);
+
       setTimeout(() => {
         setError('Could not reach the search server. Make sure the backend is running.');
         setResults([]);
         setLoading(false);
-      }, remaining);
+      }, remainingTime);
     }
   };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const trimmed = searchInput.trim();
-    if (!trimmed) {
+    if (trimmed) {
+      setSearchParams({ q: trimmed.replace(/^[#@]/, '') });
+    } else {
       setSearchParams({});
-      return;
     }
-    setSearchParams({ q: trimmed.replace(/^[#@]/, '') });
   };
 
   const handleClear = () => {
@@ -77,17 +81,17 @@ export default function SearchPage() {
     setSearchParams({});
     setResults([]);
     setHasSearched(false);
+    setError('');
   };
 
   return (
     <div className="app-container search-desktop-screen">
-      <Navigation isLoggedIn={true} search={true} />
+      <Navigation search={true} />
 
       <main className="search-main-container">
         <section className="search-bar-section">
           <h1 className="search-page-title">Search & Explore</h1>
 
-          {/* Bug fix: placeholder now says books/reading, not birds */}
           <form
             id="search-form"
             onSubmit={handleSearchSubmit}
@@ -127,12 +131,12 @@ export default function SearchPage() {
 
           {queryParam && !loading && (
             <p className="search-status-bar">
-              Results for: <strong>"{queryParam}"</strong> ({results.length} found)
+              Showing results for: <strong>"{queryParam}"</strong> ({results.length} found)
             </p>
           )}
         </section>
 
-        {/* Results masonry grid */}
+        {/* Results Pinterest masonry grid */}
         <div className="masonry-grid" aria-label="Search results" aria-busy={loading}>
           {loading && SKELETON_HEIGHTS.map((h, i) => (
             <div key={i} className="masonry-item" aria-hidden="true">
@@ -147,14 +151,14 @@ export default function SearchPage() {
           )}
 
           {!loading && !error && hasSearched && results.length === 0 && (
-            <div className="search-empty-state">
-              <p className="empty-title">No results found</p>
+            <div className="search-empty-state" style={{ columnSpan: 'all', gridColumn: '1 / -1' }}>
+              <p className="empty-title">No book snaps found</p>
               <p className="empty-subtitle">Try a different book title, hashtag, or reader handle.</p>
             </div>
           )}
 
           {!loading && !error && !hasSearched && (
-            <div className="search-empty-state">
+            <div className="search-empty-state" style={{ columnSpan: 'all', gridColumn: '1 / -1' }}>
               <div style={{ fontSize: '3rem', marginBottom: '8px' }}>📖</div>
               <p className="empty-title">Start discovering</p>
               <p className="empty-subtitle">Search for a book title, #hashtag, or @reader to explore BookSnaps.</p>
@@ -163,7 +167,7 @@ export default function SearchPage() {
 
           {!loading && !error && results.map((post, idx) => (
             <div
-              key={post.id || post._id}
+              key={post.id || post._id || idx}
               className="masonry-item post-card-animated-wrapper"
               style={{ animationDelay: `${Math.min(idx * 0.07, 0.7)}s` }}
             >
@@ -173,7 +177,7 @@ export default function SearchPage() {
         </div>
       </main>
 
-      <Footer isLoggedIn={true} />
+      <Footer />
     </div>
   );
 }

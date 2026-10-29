@@ -14,7 +14,7 @@ export default function LoginPage() {
         setError('');
 
         if (!formData.identifier.trim() || !formData.password.trim()) {
-            setError('Please fill in all fields.');
+            setError('Please fill in both email/username and password.');
             return;
         }
 
@@ -27,8 +27,12 @@ export default function LoginPage() {
             });
             const data = await res.json();
             if (res.ok) {
-                // Save user to localStorage so the app knows who is logged in
-                localStorage.setItem('user', JSON.stringify(data.user));
+                if (data.user) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                }
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                }
                 navigate('/home');
             } else {
                 setError(data.message || 'Login failed. Check your credentials.');
@@ -84,13 +88,6 @@ export default function LoginPage() {
                                 autoComplete="current-password"
                                 required
                             />
-                            <button
-                                type="button"
-                                className="forgot-password-text"
-                                onClick={() => alert('Password reset coming soon!')}
-                            >
-                                Forgot password?
-                            </button>
                         </div>
 
                         <button

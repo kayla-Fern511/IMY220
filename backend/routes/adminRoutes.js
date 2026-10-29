@@ -45,8 +45,9 @@ router.post('/report-reasons', async (req, res) => {
         }
 
         if (!adminUser) {
-            return res.status(500).json({ message: 'No admin user found to assign createdById.' });
+            adminUser = await db.collection('users').findOne({});
         }
+        const createdById = adminUser ? adminUser._id : new ObjectId();
 
         const existing = await db.collection('reportReasons').findOne({
             reason: new RegExp(`^${cleanReason}$`, 'i')
@@ -58,7 +59,7 @@ router.post('/report-reasons', async (req, res) => {
 
         const docToInsert = {
             reason: cleanReason,
-            createdById: adminUser._id,
+            createdById,
             createdAt: new Date()
         };
 

@@ -139,7 +139,7 @@ export default function NewPost({ onPublish, onCancel }) {
               name="caption"
               rows="5"
               className="edit-wireframe-textarea"
-              placeholder="What wildlife sighting did you capture?"
+              placeholder="What have you been reading lately? Share your thoughts!"
               value={formData.caption}
               onChange={handleChange}
               required
@@ -155,7 +155,7 @@ export default function NewPost({ onPublish, onCancel }) {
               name="hashtags"
               type="text"
               className="edit-wireframe-input"
-              placeholder="#Sugarbird #Protea #CapeTown"
+              placeholder="#BookLovers #Reading"
               value={formData.hashtags}
               onChange={handleChange}
             />

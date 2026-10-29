@@ -18,7 +18,8 @@ function formatTimeAgo(date) {
 
 // GET /api/activities?feed=local&user=username
 router.get('/', async (req, res) => {
-  const { feed = 'global', user: username } = req.query;
+  const feed = req.query.feed || req.query.scope || 'global';
+  const username = req.query.user || req.query.username;
 
   try {
     const db = getDB();
