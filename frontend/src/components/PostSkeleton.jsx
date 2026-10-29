@@ -1,19 +1,17 @@
-export default function PostSkeleton() {
-  return (
-    <article className="feed-post-card skeleton-card" aria-hidden="true">
-      <div className="post-image-placeholder skeleton-shimmer" />
-      <div className="post-meta-details">
-        <div className="post-tags-user-row">
-          <div className="skeleton-line skeleton-shimmer" style={{ width: '35%', height: '16px' }} />
-          <div className="skeleton-line skeleton-shimmer" style={{ width: '20%', height: '16px' }} />
+// Renders a single Pinterest-style skeleton card for the masonry grid.
+// Heights are varied so the masonry looks natural while loading.
+export default function PostSkeleton({ height = '240px' }) {
+    return (
+        <div className="pin-skeleton-card">
+            <div
+                className="pin-skeleton-img skeleton-shimmer"
+                style={{ height }}
+                aria-hidden="true"
+            />
+            <div className="pin-skeleton-body" style={{ background: 'var(--bg-card)' }}>
+                <div className="pin-skeleton-line short skeleton-shimmer" aria-hidden="true" />
+                <div className="pin-skeleton-line full skeleton-shimmer" aria-hidden="true" />
+            </div>
         </div>
-        <div className="skeleton-line skeleton-shimmer" style={{ width: '80%', height: '18px', marginTop: '6px' }} />
-        <hr className="post-card-divider" style={{ opacity: 0.2 }} />
-        <div className="post-stats-footer-row">
-          <div className="skeleton-line skeleton-shimmer" style={{ width: '25%', height: '16px' }} />
-          <div className="skeleton-line skeleton-shimmer" style={{ width: '15%', height: '16px' }} />
-        </div>
-      </div>
-    </article>
-  );
+    );
 }

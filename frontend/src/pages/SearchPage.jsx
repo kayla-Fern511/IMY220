@@ -6,6 +6,8 @@ import PostPreview from '../components/PostPreview';
 import PostSkeleton from '../components/PostSkeleton';
 import { FiSearch } from 'react-icons/fi';
 
+const SKELETON_HEIGHTS = ['220px', '300px', '180px', '260px', '200px', '280px'];
+
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get('q') || '';
@@ -18,7 +20,6 @@ export default function SearchPage() {
 
   useEffect(() => {
     setSearchInput(queryParam);
-
     if (queryParam.trim()) {
       fetchSearchResults(queryParam.trim());
     } else {
@@ -40,27 +41,24 @@ export default function SearchPage() {
         `http://localhost:5000/api/posts?q=${encodeURIComponent(cleanTerm)}`
       );
 
-      if (!response.ok) {
-        throw new Error(`Server returned status ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Server returned ${response.status}`);
 
       const data = await response.json();
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 1000 - elapsedTime);
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, 800 - elapsed);
 
       setTimeout(() => {
         setResults(Array.isArray(data) ? data : []);
         setLoading(false);
-      }, remainingTime);
+      }, remaining);
     } catch {
-      const elapsedTime = Date.now() - startTime;
-      const remainingTime = Math.max(0, 1000 - elapsedTime);
-
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, 800 - elapsed);
       setTimeout(() => {
-        setError('Could not connect to the search server.');
+        setError('Could not reach the search server. Make sure the backend is running.');
         setResults([]);
         setLoading(false);
-      }, remainingTime);
+      }, remaining);
     }
   };
 
@@ -89,73 +87,90 @@ export default function SearchPage() {
         <section className="search-bar-section">
           <h1 className="search-page-title">Search & Explore</h1>
 
-          <form onSubmit={handleSearchSubmit} className="search-input-wrapper">
-            <FiSearch className="search-input-icon" />
+          {/* Bug fix: placeholder now says books/reading, not birds */}
+          <form
+            id="search-form"
+            onSubmit={handleSearchSubmit}
+            className="search-input-wrapper"
+            role="search"
+          >
+            <FiSearch className="search-input-icon" aria-hidden="true" />
             <input
+              id="search-input"
               type="text"
               className="search-field-input"
-              placeholder="Search by #hashtag, bird species, or @username..."
+              placeholder="Search books, #readingwrap, @username…"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               autoFocus
+              aria-label="Search posts"
             />
             {searchInput && (
-              <button type="button" className="search-clear-btn" onClick={handleClear}>
+              <button
+                id="search-clear-btn"
+                type="button"
+                className="search-clear-btn"
+                onClick={handleClear}
+                aria-label="Clear search"
+              >
                 ✕
               </button>
             )}
-            <button type="submit" className="wireframe-btn search-submit-btn">
+            <button
+              id="search-submit-btn"
+              type="submit"
+              className="wireframe-btn search-submit-btn"
+            >
               Search
             </button>
           </form>
 
           {queryParam && !loading && (
-            <div className="search-status-bar">
-              <span>
-                Results for: <strong>"{queryParam}"</strong> ({results.length} found)
-              </span>
-            </div>
+            <p className="search-status-bar">
+              Results for: <strong>"{queryParam}"</strong> ({results.length} found)
+            </p>
           )}
         </section>
 
-        <section className="home-post-grid-container">
-          {loading && (
-            <>
-              <PostSkeleton />
-              <PostSkeleton />
-            </>
-          )}
+        {/* Results masonry grid */}
+        <div className="masonry-grid" aria-label="Search results" aria-busy={loading}>
+          {loading && SKELETON_HEIGHTS.map((h, i) => (
+            <div key={i} className="masonry-item" aria-hidden="true">
+              <PostSkeleton height={h} />
+            </div>
+          ))}
 
           {error && !loading && (
-            <p className="form-error-msg" style={{ gridColumn: '1 / -1', margin: '20px auto', maxWidth: '500px' }}>
+            <p className="form-error-msg" style={{ columnSpan: 'all', margin: '20px auto', maxWidth: '500px' }}>
               {error}
             </p>
           )}
 
           {!loading && !error && hasSearched && results.length === 0 && (
             <div className="search-empty-state">
-              <p className="empty-title">No sightings found</p>
-              <p className="empty-subtitle">Try searching for a different species, tag, or photographer handle.</p>
+              <p className="empty-title">No results found</p>
+              <p className="empty-subtitle">Try a different book title, hashtag, or reader handle.</p>
             </div>
           )}
 
           {!loading && !error && !hasSearched && (
             <div className="search-empty-state">
+              <div style={{ fontSize: '3rem', marginBottom: '8px' }}>📖</div>
               <p className="empty-title">Start discovering</p>
-              <p className="empty-subtitle">Enter a keyword or click on a hashtag to view matching bird sightings.</p>
+              <p className="empty-subtitle">Search for a book title, #hashtag, or @reader to explore BookSnaps.</p>
             </div>
           )}
 
           {!loading && !error && results.map((post, idx) => (
             <div
-              key={post.id}
-              className="post-card-animated-wrapper"
-              style={{ animationDelay: `${idx * 0.15}s` }}
+              key={post.id || post._id}
+              className="masonry-item post-card-animated-wrapper"
+              style={{ animationDelay: `${Math.min(idx * 0.07, 0.7)}s` }}
             >
               <PostPreview post={post} />
             </div>
           ))}
-        </section>
+        </div>
       </main>
 
       <Footer isLoggedIn={true} />

@@ -1,24 +1,24 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import logoImg from '../assets/logo.png';
-import Footer from '../components/Footer';
+import { useNavigate, Link } from 'react-router-dom';
 import Navigation from '../components/Navigation';
+import Footer from '../components/Footer';
 
 export default function LoginPage() {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({
-        identifier: '',
-        password: ''
-    });
+    const [formData, setFormData] = useState({ identifier: '', password: '' });
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
+
         if (!formData.identifier.trim() || !formData.password.trim()) {
             setError('Please fill in all fields.');
             return;
         }
 
+        setIsLoading(true);
         try {
             const res = await fetch('http://localhost:5000/api/auth/login', {
                 method: 'POST',
@@ -27,81 +27,90 @@ export default function LoginPage() {
             });
             const data = await res.json();
             if (res.ok) {
+                // Save user to localStorage so the app knows who is logged in
+                localStorage.setItem('user', JSON.stringify(data.user));
                 navigate('/home');
             } else {
-                setError(data.message || 'Login failed.');
+                setError(data.message || 'Login failed. Check your credentials.');
             }
         } catch {
-            setError('Backend connection error. Ensure your server is running.');
+            setError('Could not connect to the backend. Ensure the server is running.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
         <div className="app-container login-desktop-container">
             <Navigation isLoggedIn={false} />
-            <main className="login-desktop-split">
-                <section className="login-left-pane">
-                    <form onSubmit={handleSubmit} className="login-form-content">
-                        {error && <p className="form-error-msg">{error}</p>}
 
-                        <div className="login-actions-row">
-                            <button
-                                type="button"
-                                className="back-arrow-btn"
-                                onClick={() => navigate('/')}
-                                aria-label="Back"
-                            >
-                                ←
-                            </button>
-                        </div>
+            <main className="auth-centered-layout">
+                <div className="auth-card">
+                    <div className="auth-card-header">
+                        <h1 className="auth-title">Welcome back</h1>
+                        <p className="auth-subtitle">Sign in to your BookSnaps account</p>
+                    </div>
+
+                    <form id="login-form" className="auth-form" onSubmit={handleSubmit} noValidate>
+                        {error && <p className="form-error-msg" role="alert">{error}</p>}
 
                         <div className="input-group">
-                            <label className="wireframe-label" htmlFor="identifier">
-                                Email Address/Username
+                            <label className="wireframe-label" htmlFor="login-identifier">
+                                Email or Username
                             </label>
                             <input
-                                id="identifier"
-                                className="form-input login-wireframe-input"
+                                id="login-identifier"
+                                className="auth-input"
                                 type="text"
-                                placeholder="Input"
+                                placeholder="reader@example.com or @bookworm"
                                 value={formData.identifier}
                                 onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
+                                autoComplete="username"
                                 required
                             />
                         </div>
 
                         <div className="input-group">
-                            <label className="wireframe-label" htmlFor="password">
+                            <label className="wireframe-label" htmlFor="login-password">
                                 Password
                             </label>
                             <input
-                                id="password"
-                                className="form-input login-wireframe-input"
+                                id="login-password"
+                                className="auth-input"
                                 type="password"
-                                placeholder="Input"
+                                placeholder="Your password"
                                 value={formData.password}
                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                autoComplete="current-password"
                                 required
                             />
-                            <span className="forgot-password-text">Forget Password</span>
-                        </div>
-
-                        <div className="login-actions-row">
-                            <button type="submit" className="wireframe-btn login-action-btn" style={{marginBottom: '20px'}}>
-                                Log In
+                            <button
+                                type="button"
+                                className="forgot-password-text"
+                                onClick={() => alert('Password reset coming soon!')}
+                            >
+                                Forgot password?
                             </button>
                         </div>
-                    </form>
-                </section>
 
-                <section className="login-right-pane">
-                    <img
-                        src={logoImg}
-                        alt="Logo"
-                        className="login-graphic-preview"
-                    />
-                </section>
+                        <button
+                            id="login-submit-btn"
+                            type="submit"
+                            className="wireframe-btn auth-submit-btn"
+                            disabled={isLoading}
+                            style={{ justifyContent: 'center' }}
+                        >
+                            {isLoading ? 'Signing in…' : 'Sign In'}
+                        </button>
+                    </form>
+
+                    <p className="auth-footer-link">
+                        New to BookSnaps?{' '}
+                        <Link to="/signup">Create a free account</Link>
+                    </p>
+                </div>
             </main>
+
             <Footer isLoggedIn={false} />
         </div>
     );

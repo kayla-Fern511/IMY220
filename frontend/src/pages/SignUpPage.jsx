@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import logoImg from '../assets/logo.png';
-import Footer from '../components/Footer';
+import { useNavigate, Link } from 'react-router-dom';
 import Navigation from '../components/Navigation';
+import Footer from '../components/Footer';
 
 export default function SignUpPage() {
   const navigate = useNavigate();
@@ -18,12 +17,10 @@ export default function SignUpPage() {
     links: ''
   });
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
@@ -31,18 +28,23 @@ export default function SignUpPage() {
     setError('');
 
     if (!formData.email.includes('@')) {
-      setError('Invalid email address.');
+      setError('Please enter a valid email address.');
       return;
     }
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long.');
+      setError('Password must be at least 6 characters.');
       return;
     }
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match.');
       return;
     }
+    if (!formData.username.trim()) {
+      setError('Username is required.');
+      return;
+    }
 
+    setIsLoading(true);
     try {
       const res = await fetch('http://localhost:5000/api/auth/signup', {
         method: 'POST',
@@ -50,173 +52,170 @@ export default function SignUpPage() {
         body: JSON.stringify(formData)
       });
       const data = await res.json();
-      if (res.ok) {        
+      if (res.ok) {
+        // Save user so the app knows who is logged in
+        localStorage.setItem('user', JSON.stringify(data.user));
         navigate('/home');
       } else {
         setError(data.message || 'Sign up failed.');
       }
     } catch {
-      setError('Backend connection error. Check Express.');
+      setError('Could not connect to the backend. Ensure the server is running.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="app-container signup-wireframe-screen">
-      <Navigation isLoggedIn={false} />    
+      <Navigation isLoggedIn={false} />
 
-      <div className="signup-bottom-action-row">
-        <button
-          type="button"
-          className="back-arrow-btn"
-          onClick={() => navigate('/')}
-          aria-label="Back"
-        >
-          ←
-        </button>
-      </div>
-
-      {error && <p className="form-error-msg">{error}</p>}
-
-      <form onSubmit={handleSubmit} className="signup-wireframe-form" style={{ paddingBottom: '20px' }}>
-        <div className="signup-three-columns-wrapper">
-          <div className="signup-column">
-            <div className="signup-field-group">
-              <label htmlFor="name">Name</label>
-              <input
-                id="name"
-                name="name"
-                type="text"
-                placeholder="Input"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="signup-field-group">
-              <label htmlFor="surname">Surname</label>
-              <input
-                id="surname"
-                name="surname"
-                type="text"
-                placeholder="Input"
-                value={formData.surname}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="signup-field-group">
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Input"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
+      <main className="auth-centered-layout">
+        <div className="auth-card signup-auth-card">
+          <div className="auth-card-header">
+            <h1 className="auth-title">Create your account</h1>
+            <p className="auth-subtitle">Start sharing your reading journey</p>
           </div>
 
-          <div className="signup-vertical-divider"></div>
+          <form id="signup-form" className="auth-form" onSubmit={handleSubmit} noValidate>
+            {error && <p className="form-error-msg signup-error-banner" role="alert">{error}</p>}
 
-          <div className="signup-column">
-            <div className="signup-field-group">
-              <label htmlFor="password">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Input"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="signup-field-group">
-              <label htmlFor="confirmPassword">Password</label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                placeholder="Input"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="signup-field-group">
-              <label htmlFor="username">Username</label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                placeholder="Input"
-                value={formData.username}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="signup-vertical-divider"></div>
-
-          <div className="signup-column">
-            <div className="signup-field-group">
-              <label htmlFor="pronouns">Pronouns</label>
-              <div className="signup-pronoun-input-container">
+            {/* Two-column grid for most fields */}
+            <div className="signup-three-columns-wrapper">
+              <div className="signup-field-group">
+                <label htmlFor="signup-name">First Name *</label>
                 <input
-                  id="pronouns"
+                  id="signup-name"
+                  name="name"
+                  type="text"
+                  placeholder="Jane"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="signup-field-group">
+                <label htmlFor="signup-surname">Last Name *</label>
+                <input
+                  id="signup-surname"
+                  name="surname"
+                  type="text"
+                  placeholder="Austen"
+                  value={formData.surname}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="signup-field-group">
+                <label htmlFor="signup-username">Username *</label>
+                <input
+                  id="signup-username"
+                  name="username"
+                  type="text"
+                  placeholder="bookworm42"
+                  value={formData.username}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="signup-field-group">
+                <label htmlFor="signup-email">Email *</label>
+                <input
+                  id="signup-email"
+                  name="email"
+                  type="email"
+                  placeholder="jane@reads.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="signup-field-group">
+                <label htmlFor="signup-password">Password *</label>
+                <input
+                  id="signup-password"
+                  name="password"
+                  type="password"
+                  placeholder="Min. 6 characters"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="signup-field-group">
+                <label htmlFor="signup-confirmPassword">Confirm Password *</label>
+                <input
+                  id="signup-confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  placeholder="Repeat password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="signup-field-group">
+                <label htmlFor="signup-pronouns">Pronouns</label>
+                <input
+                  id="signup-pronouns"
                   name="pronouns"
                   type="text"
-                  placeholder="Input"
+                  placeholder="she/her, they/them…"
                   value={formData.pronouns}
                   onChange={handleChange}
                 />
-                <button type="button" className="link-plus-btn">+</button>
+              </div>
+
+              <div className="signup-field-group">
+                <label htmlFor="signup-links">Goodreads / Website</label>
+                <input
+                  id="signup-links"
+                  name="links"
+                  type="text"
+                  placeholder="goodreads.com/user/jane"
+                  value={formData.links}
+                  onChange={handleChange}
+                />
               </div>
             </div>
 
-            <div className="signup-field-group">
-              <label htmlFor="bio">Bio</label>
+            {/* Bio spans full width */}
+            <div className="signup-field-group" style={{ marginTop: '4px' }}>
+              <label htmlFor="signup-bio">Short Bio</label>
               <input
-                id="bio"
+                id="signup-bio"
                 name="bio"
                 type="text"
-                placeholder="Input"
+                placeholder="Fantasy lover & cozy mystery reader 📚"
                 value={formData.bio}
                 onChange={handleChange}
               />
             </div>
 
-            <div className="signup-field-group">
-              <label htmlFor="links">GoodReads</label>
-              <div className="signup-link-input-container">
-                <input
-                  id="links"
-                  name="links"
-                  type="text"
-                  placeholder="Input"
-                  value={formData.links}
-                  onChange={handleChange}
-                />
-                <button type="button" className="link-plus-btn">+</button>
-              </div>
-            </div>
-          </div>
-        </div>
+            <button
+              id="signup-submit-btn"
+              type="submit"
+              className="wireframe-btn auth-submit-btn"
+              disabled={isLoading}
+              style={{ justifyContent: 'center', marginTop: '4px' }}
+            >
+              {isLoading ? 'Creating account…' : 'Create Account'}
+            </button>
+          </form>
 
-        <div className="signup-bottom-action-row">
-          <button type="submit" className="signup-green-btn" style={{marginTop: '20px'}}>
-            Sign Up
-          </button>
+          <p className="auth-footer-link">
+            Already a reader? <Link to="/login">Sign in</Link>
+          </p>
         </div>
-      </form>
-      <Footer isLoggedIn={false}/>
+      </main>
+
+      <Footer isLoggedIn={false} />
     </div>
   );
 }

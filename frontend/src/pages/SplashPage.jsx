@@ -1,8 +1,24 @@
 import { useNavigate } from 'react-router-dom';
-import logoImg from '../assets/logo.png';
+import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
-import Navigation from '../components/Navigation'
 
+const features = [
+  {
+    icon: '📸',
+    title: 'Share Your Reads',
+    desc: 'Post photos of your current reads, cozy corners, and annotated pages.'
+  },
+  {
+    icon: '📚',
+    title: 'Discover Books',
+    desc: 'Explore what other readers are loving and add to your TBR list.'
+  },
+  {
+    icon: '🤝',
+    title: 'Build Your Community',
+    desc: 'Follow fellow readers, exchange recommendations, and make friends.'
+  }
+];
 
 export default function SplashPage() {
   const navigate = useNavigate();
@@ -12,31 +28,48 @@ export default function SplashPage() {
       <Navigation isLoggedIn={false} />
 
       <main className="splash-desktop-container">
-        <section className="splash-hero-left">
-          <h2>Welcome to BookSnaps</h2>
-          <div>
-            <p>
-              BookSnaps is a photo-sharing platform designed for book lovers, readers, and literary aesthetic creators. Users can share photos of their current reads, cozy book nooks, annotated pages, and indie bookstore visits, while discovering new books and connecting with a community of passionate readers.
+        <div className="splash-hero-content">
+          <span className="splash-eyebrow">For Book Lovers</span>
+
+          <section className="splash-hero-left">
+            <h2>Your reading life,<br />beautifully shared.</h2>
+            <p className="tagline">
+              BookSnaps is a visual diary for readers. Share photos, document your
+              reading progress, and discover a community that loves books as much as you do.
             </p>
-          </div>
+          </section>
+
           <div className="splash-actions-desktop">
-            <button className="wireframe-btn" onClick={() => navigate('/signup')}>Create Account</button>
             <button
+              id="splash-signup-btn"
               className="wireframe-btn"
-              style={{ backgroundColor: 'var(--tags-color)', color: 'var(--text-main)' }}
+              onClick={() => navigate('/signup')}
+            >
+              Get Started — It's Free
+            </button>
+            <button
+              id="splash-login-btn"
+              className="wireframe-btn"
+              style={{ background: 'var(--bg-card)', color: 'var(--text)', border: '1.5px solid var(--border)' }}
               onClick={() => navigate('/login')}
             >
               Sign In
             </button>
           </div>
-        </section>
+        </div>
 
-        <section className="splash-hero-right">
-          <div className="splash-placeholder-graphic">
-            <img src={logoImg} alt="BookSnaps Logo" className="nav-logo-image" style={{ height: '420px', width: 'auto' }} />
-          </div>
-        </section>
+        {/* Feature cards */}
+        <div className="splash-feature-grid" role="list">
+          {features.map((feat) => (
+            <div key={feat.title} className="splash-feature-card" role="listitem">
+              <div className="splash-feature-icon" aria-hidden="true">{feat.icon}</div>
+              <h3 className="splash-feature-title">{feat.title}</h3>
+              <p className="splash-feature-desc">{feat.desc}</p>
+            </div>
+          ))}
+        </div>
       </main>
+
       <Footer isLoggedIn={false} />
     </div>
   );
