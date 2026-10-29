@@ -1,0 +1,164 @@
+[
+    {
+        "_id": {
+            "$oid": "6ae386b1db3acd3e75245a8f"
+        },
+        "userId1": {
+            "$oid": "6ae33dc2db3acd3e75245a83"
+        },
+        "userId2": {
+            "$oid": "6ae33e85db3acd3e75245a84"
+        },
+        "status": "accepted",
+        "createdAt": {
+            "$date": "2026-10-29T17:47:29.431Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T17:47:34.942Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6ae39d31101f2f1c654e1903"
+        },
+        "userId1": {
+            "$oid": "6ae39c3bddac9cf56042e01c"
+        },
+        "userId2": {
+            "$oid": "6ae33e85db3acd3e75245a84"
+        },
+        "status": "accepted",
+        "createdAt": {
+            "$date": "2026-10-29T19:23:29.969Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T19:42:17.601Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6ae39dea101f2f1c654e190f"
+        },
+        "userId1": {
+            "$oid": "6ae39d7d101f2f1c654e1906"
+        },
+        "userId2": {
+            "$oid": "6ae33dc2db3acd3e75245a83"
+        },
+        "status": "accepted",
+        "createdAt": {
+            "$date": "2026-10-29T19:26:34.356Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T19:26:39.469Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6ae39e62101f2f1c654e1913"
+        },
+        "userId1": {
+            "$oid": "6ae39e37101f2f1c654e1910"
+        },
+        "userId2": {
+            "$oid": "6ae39c3bddac9cf56042e01c"
+        },
+        "status": "pending",
+        "createdAt": {
+            "$date": "2026-10-29T19:28:34.008Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T19:28:34.008Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6ae39f0d101f2f1c654e1919"
+        },
+        "userId1": {
+            "$oid": "6ae39ed2101f2f1c654e1916"
+        },
+        "userId2": {
+            "$oid": "6ae33e85db3acd3e75245a84"
+        },
+        "status": "accepted",
+        "createdAt": {
+            "$date": "2026-10-29T19:31:25.943Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T19:42:18.005Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6ae39fbe101f2f1c654e1921"
+        },
+        "userId1": {
+            "$oid": "6ae39f4a101f2f1c654e191a"
+        },
+        "userId2": {
+            "$oid": "6ae33dc2db3acd3e75245a83"
+        },
+        "status": "accepted",
+        "createdAt": {
+            "$date": "2026-10-29T19:34:22.869Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T19:43:56.521Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6ae39fc7101f2f1c654e1922"
+        },
+        "userId1": {
+            "$oid": "6ae39f4a101f2f1c654e191a"
+        },
+        "userId2": {
+            "$oid": "6ae33e85db3acd3e75245a84"
+        },
+        "status": "pending",
+        "createdAt": {
+            "$date": "2026-10-29T19:34:31.697Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T19:34:31.697Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6ae3a0ca101f2f1c654e1924"
+        },
+        "userId1": {
+            "$oid": "6ae3a0c5101f2f1c654e1923"
+        },
+        "userId2": {
+            "$oid": "6ae39d7d101f2f1c654e1906"
+        },
+        "status": "pending",
+        "createdAt": {
+            "$date": "2026-10-29T19:38:50.870Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T19:38:50.870Z"
+        }
+    },
+    {
+        "_id": {
+            "$oid": "6ae3a1f5101f2f1c654e1935"
+        },
+        "userId1": {
+            "$oid": "6ae33e85db3acd3e75245a84"
+        },
+        "userId2": {
+            "$oid": "6ae39e37101f2f1c654e1910"
+        },
+        "status": "pending",
+        "createdAt": {
+            "$date": "2026-10-29T19:43:49.020Z"
+        },
+        "updatedAt": {
+            "$date": "2026-10-29T19:43:49.020Z"
+        }
+    }
+]

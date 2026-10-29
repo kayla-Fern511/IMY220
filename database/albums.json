@@ -1,0 +1,26 @@
+[
+  {
+    "_id": { "$oid": "6ae387fedb3acd3e75245a94" },
+    "userId": { "$oid": "6ae33e85db3acd3e75245a84" },
+    "name": "My reads",
+    "description": "All the books ive been reading",
+    "createdAt": { "$date": "2026-10-29T17:53:02.644Z" },
+    "updatedAt": { "$date": "2026-10-29T17:53:08.523Z" }
+  },
+  {
+    "_id": { "$oid": "6ae3882fdb3acd3e75245a97" },
+    "userId": { "$oid": "6ae33e85db3acd3e75245a84" },
+    "name": "My spaces",
+    "description": "all the places i like to read",
+    "createdAt": { "$date": "2026-10-29T17:53:51.875Z" },
+    "updatedAt": { "$date": "2026-10-29T17:54:56.890Z" }
+  },
+  {
+    "_id": { "$oid": "6ae39fa7101f2f1c654e191f" },
+    "userId": { "$oid": "6ae39f4a101f2f1c654e191a" },
+    "name": "Best sad novels",
+    "description": "my fav cry your eyes out books",
+    "createdAt": { "$date": "2026-10-29T19:33:59.508Z" },
+    "updatedAt": { "$date": "2026-10-29T19:33:59.508Z" }
+  }
+]
