@@ -14,10 +14,6 @@ export default function Footer({ isLoggedIn = true }) {
 
     return (
         <footer className="wireframe-footer">
-            <div className="footer-brand-container">
-                <img src={logoImg} alt="BookSnaps Logo" className="footer-logo-img" />
-                <span className="brand-logo footer-brand-text">BookSnaps</span>
-            </div>
 
             {isLoggedIn ? (
                 <nav className="footer-nav-links">

@@ -2,24 +2,6 @@ import { useNavigate } from 'react-router-dom';
 import Navigation from '../components/Navigation';
 import Footer from '../components/Footer';
 
-const features = [
-  {
-    icon: '📸',
-    title: 'Share Your Reads',
-    desc: 'Post photos of your current reads, cozy corners, and annotated pages.'
-  },
-  {
-    icon: '📚',
-    title: 'Discover Books',
-    desc: 'Explore what other readers are loving and add to your TBR list.'
-  },
-  {
-    icon: '🤝',
-    title: 'Build Your Community',
-    desc: 'Follow fellow readers, exchange recommendations, and make friends.'
-  }
-];
-
 export default function SplashPage() {
   const navigate = useNavigate();
 
@@ -56,18 +38,7 @@ export default function SplashPage() {
               Sign In
             </button>
           </div>
-        </div>
-
-        {/* Feature cards */}
-        <div className="splash-feature-grid" role="list">
-          {features.map((feat) => (
-            <div key={feat.title} className="splash-feature-card" role="listitem">
-              <div className="splash-feature-icon" aria-hidden="true">{feat.icon}</div>
-              <h3 className="splash-feature-title">{feat.title}</h3>
-              <p className="splash-feature-desc">{feat.desc}</p>
-            </div>
-          ))}
-        </div>
+        </div>        
       </main>
 
       <Footer isLoggedIn={false} />

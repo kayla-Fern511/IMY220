@@ -65,6 +65,7 @@ router.post('/signup', async (req, res) => {
     const newUser = {
       username: cleanUsername,
       name,
+      surname,
       email: cleanEmail,
       password,
       role: 'user',
@@ -85,11 +86,13 @@ router.post('/signup', async (req, res) => {
         id: result.insertedId,
         username: newUser.username,
         name: newUser.name,
+        surname: newUser.surname,
         email: newUser.email,
         role: newUser.role
       }
     });
   } catch (error) {
+    console.error('Error during signup:', error);
     res.status(500).json({ message: 'Error registering account', error: error.message });
   }
 });
